@@ -84,6 +84,8 @@ class TextMessage(BaseModel):
     from_zip = CharField(null=True)
     from_country = CharField(null=True)
 
+    send_status = CharField(null=True)
+
 class TextAttachment(BaseModel):
     message = ForeignKeyField(TextMessage, related_name='attachments')
     content_type = CharField()
