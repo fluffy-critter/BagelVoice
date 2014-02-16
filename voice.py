@@ -2,11 +2,8 @@
 
 from model import *
 import cgi
-import cgitb
 import datetime
 import os
-
-cgitb.enable(display=False,format='text')
 
 form = cgi.FieldStorage()
 
@@ -26,24 +23,22 @@ inbox = Inbox.get(Inbox.phone_number == form.getfirst('To'))
 now = datetime.datetime.now()
 
 try:
-    call_rec = VoiceCall.get(sid == form.getfirst('CallSid'))
+    call_rec = VoiceCall.get(VoiceCall.sid == form.getfirst('CallSid'))
 except VoiceCall.DoesNotExist:
-    call_rec = VoiceCall.create(sid=form.getfirst('CallSid'),
-                                account=user,
-                                inbox=inbox,
-                                starttime=now,
-                                msg_new=True
-                                )
+    call_rec = VoiceCall()
+    call_rec.sid=form.getfirst('CallSid')
+    call_rec.account=user
+    call_rec.call_to=inbox
+    call_rec.starttime=now
 
+call_rec.lastevent = now
 call_rec.call_from = form.getfirst('From')
 call_rec.call_status = status
-call_rec.caller_id_string = form.getfirst('CallerName')
 call_rec.from_city = form.getfirst('FromCity')
 call_rec.from_state = form.getfirst('FromState')
 call_rec.from_zip = form.getfirst('FromZip')
 call_rec.from_country = form.getfirst('FromCountry')
 call_rec.call_duration = form.getfirst('CallDuration')
-call_rec.lastevent = now
 call_rec.save()
 
 if form.getfirst('RecordingSid'):

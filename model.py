@@ -1,6 +1,6 @@
 from peewee import *
 
-database = SqliteDatabase('voicebox.db')
+database = SqliteDatabase('db/voicebox.db')
 database.connect()
 
 class BaseModel(Model):
