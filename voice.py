@@ -32,18 +32,19 @@ except VoiceCall.DoesNotExist:
     call_rec.starttime=now
 
 call_rec.lastevent = now
-call_rec.call_from = form.getfirst('From')
+call_rec.call_from = form.getfirst('From') or ''
 call_rec.call_status = status
-call_rec.from_city = form.getfirst('FromCity')
-call_rec.from_state = form.getfirst('FromState')
-call_rec.from_zip = form.getfirst('FromZip')
-call_rec.from_country = form.getfirst('FromCountry')
-call_rec.call_duration = form.getfirst('CallDuration')
+call_rec.from_city = form.getfirst('FromCity') or ''
+call_rec.from_state = form.getfirst('FromState') or ''
+call_rec.from_zip = form.getfirst('FromZip') or ''
+call_rec.from_country = form.getfirst('FromCountry') or ''
+call_rec.call_duration = int(form.getfirst('CallDuration') or 0)
 call_rec.save()
 
 if form.getfirst('RecordingSid'):
-    voicemail = Voicemail.create(sid=form.getfirst('RecordingSid'),
-                                 duration=form.getfirst('RecordingDuration'),
+    voicemail = Voicemail.create(call=call_rec,
+                                 sid=form.getfirst('RecordingSid'),
+                                 duration=int(form.getfirst('RecordingDuration') or 0),
                                  url=form.getfirst('RecordingUrl'),
                                  msg_new=True)
 
