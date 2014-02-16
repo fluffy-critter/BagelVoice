@@ -53,13 +53,13 @@ class VoiceCall(BaseModel):
     call_to = ForeignKeyField(Inbox, related_name='calls')
     call_status = CharField()
 
-    caller_id_string = CharField()
-    from_city = CharField()
-    from_state = CharField()
-    from_zip = CharField()
-    from_country = CharField()
+    caller_id_string = CharField(default='')
+    from_city = CharField(default='')
+    from_state = CharField(default='')
+    from_zip = CharField(default='')
+    from_country = CharField(default='')
 
-    call_duration = IntegerField()
+    call_duration = IntegerField(default=0)
 
 class Voicemail(BaseModel):
     sid = CharField(unique=True)
