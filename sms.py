@@ -17,7 +17,7 @@ inbox = Inbox.get(Inbox.phone_number == form.getfirst('To'))
 msg = TextMessage.create(sid=form.getfirst('MessageSid'),
                          inbox=inbox,
                          time=datetime.datetime.now(),
-                         msg_width=form.getfirst('From'),
+                         msg_with=form.getfirst('From'),
                          msg_from=form.getfirst('From'),
                          msg_to=form.getfirst('To'),
                          msg_body=form.getfirst('Body'))
