@@ -6,6 +6,7 @@ import os
 import datetime
 import logging
 import bcrypt
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,6 @@ def get_form():
     ''' Gets the parsed CGI form values. MUST be retrieved from here. '''
     return form
 
-login_error_string = None
 
 def get_user():
     ''' Get the currently logged-in user, or presents a login form and exits if there is none'''
@@ -29,7 +29,7 @@ def get_user():
     session_cookie = cookie.get('session', None)
     if session_cookie:
         try:
-            sess = WebSession.get(session_id == session_cookie.value)
+            sess = WebSession.get(WebSession.session_id == session_cookie.value)
             sess.last_seen = datetime.datetime.now()
             sess.last_ip = ipAddr
             sess.save()
@@ -37,14 +37,17 @@ def get_user():
         except WebSession.DoesNotExist:
             logger.info('Got invalid session id "%s"', session_cookie.value)
 
+    login_error_string = None
     if form.getfirst('username') and form.getfirst('password'):
         user = User.get(username=form.getfirst('username'))
         if bcrypt.hashpw(form.getfirst('password'), user.password) == user.password:
             # Login succeeded
-            sess = WebSession.create(session_id=uuid.uuid4().str,
+            sess = WebSession.create(session_id=uuid.uuid4().hex,
                                      user=user,
                                      last_ip=ipAddr,
                                      last_seen = datetime.datetime.now())
+            cookie["session"] = sess.session_id
+            print cookie
             return user
         else:
             # Login failed; set an error string to that effect
@@ -59,13 +62,12 @@ def get_user():
 <title>Login required</title>
 </head><body class="loginForm">
 
-<div id="login">
-"""
+<div id="login">"""
     if login_error_string:
         print '<div class="error">%s</div>' % login_error_string
     else:
         print '<div class="explain">You must log in to continue.</div>'
-    print '<form method="POST" action="%s"><ul>' % os.environ('REQUEST_URI')
+    print '<form method="POST" action="%s"><ul>' % os.environ.get('REQUEST_URI')
     print '<li><label for="username">Username:</label>'
     print '<input type="text" name="username" value="%s"></li>' % (form.getfirst('username') or '')
     print """<li><label for="password">Password:</label>
