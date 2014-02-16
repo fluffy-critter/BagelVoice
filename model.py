@@ -25,15 +25,18 @@ class WebSession(BaseModel):
     last_seen = DateTimeField()
 
 class Inbox(BaseModel):
+    owner = ForeignKeyField(User, related_name='inboxes')
     phone_number = CharField(unique=True)
-    account = ForeignKeyField(User, related_name='inboxes')
+    name = CharField()
     voicemail_greeting = CharField()
 
 class ForwardingRule(BaseModel):
     id = PrimaryKeyField()
     inbox = ForeignKeyField(Inbox, related_name='forwarding_rules')
-    max_ring_time = IntegerField()
-    # destination type; for now, Number or Sip
+    name = CharField();
+    
+    max_ring_time = IntegerField(default=30)
+    # destination type; must be something supported by TwiML (e.g. Number, Sip)
     dest_type = CharField()
     dest_addr = CharField()
     active = BooleanField(default=True)
@@ -81,7 +84,7 @@ class TextAttachment(BaseModel):
     content_type = CharField()
     content_url = CharField()
 
-def init_schema():
+def create_tables():
     for table in [
         User,
         WebSession,

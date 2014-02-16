@@ -23,13 +23,15 @@ status = form.getfirst('CallStatus')
 user = User.get(User.twilio_sid == form.getfirst('AccountSid'))
 inbox = Inbox.get(Inbox.phone_number == form.getfirst('To'))
 
+now = datetime.datetime.now()
+
 try:
     call_rec = VoiceCall.get(sid == form.getfirst('CallSid'))
 except VoiceCall.DoesNotExist:
     call_rec = VoiceCall.create(sid=form.getfirst('CallSid'),
                                 account=user,
                                 inbox=inbox,
-                                starttime=datetime.datetime.now(),
+                                starttime=now,
                                 msg_new=True
                                 )
 
@@ -41,6 +43,7 @@ call_rec.from_state = form.getfirst('FromState')
 call_rec.from_zip = form.getfirst('FromZip')
 call_rec.from_country = form.getfirst('FromCountry')
 call_rec.call_duration = form.getfirst('CallDuration')
+call_rec.lastevent = now
 call_rec.save()
 
 if form.getfirst('RecordingSid'):
