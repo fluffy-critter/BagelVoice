@@ -1,0 +1,71 @@
+.thread {
+    border: solid black 1px;
+    margin-bottom: 1ex;
+    float: left;
+    clear: left;
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+}
+
+.thread .who {
+    background: #ccf;
+    border-bottom: solid black 1px;
+    font-size: small;
+    padding: 0.1ex;
+}
+
+.thread .who .phone {
+    font-weight: bold;
+    margin-right: 1em;
+}
+
+.thread .who .name {
+    color: #333;
+}
+
+.thread .who .location {
+    color: #553;
+    font-style: italic;
+}
+
+.thread .who .inbox {
+    font-weight: bold;
+    float: right;
+}
+
+.thread .status {
+    float: right;
+    background: white;
+    margin: 2px;
+    font-style: italic;
+    font-weight: x-bold;
+    font-size: small;
+}
+
+.thread .when {
+    float: left;
+    background: #cfc;
+    margin: 0px 1ex 1ex 0px;
+    border: #070 1px;
+    border-style: none solid solid none;
+}
+
+.thread .event {
+    clear: both;
+    border-top: dotted black 1px;
+}
+
+.thread .text {
+    padding: 1ex;
+}
+
+.thread .inbound .text {
+    text-align: left;
+}
+
+.thread .outbound .text {
+    text-align: right;
+}
+
+.thread .footer {
+    clear: both;
+}

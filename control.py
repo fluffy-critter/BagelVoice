@@ -45,7 +45,7 @@ def getConversation(form, inbox, associate):
             last_update = datetime.datetime.now(),
             associate = associate)
     return conv
-        
+
 def getEvent(form, sidField, inbound):
     if inbound:
         whoField = 'From'
@@ -72,7 +72,7 @@ def getEvent(form, sidField, inbound):
             last_update=now,
             )
         conversation.last_update = now
-        conversation.unread = now
+        conversation.unread = True
         conversation.save()
         
     if applyAttribs(event, form, {
@@ -84,6 +84,3 @@ def getEvent(form, sidField, inbound):
         event.save()
 
     return event
-
-        
-            

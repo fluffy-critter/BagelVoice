@@ -7,6 +7,8 @@ import datetime
 import logging
 import os
 
+#TODO: switch to twilio.twiml
+
 form = cgi.FieldStorage()
 
 print """\

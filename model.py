@@ -3,6 +3,9 @@ from peewee import *
 database = SqliteDatabase('db/voicebox.db')
 database.connect()
 
+def transaction():
+    return database.transaction()
+
 class BaseModel(Model):
     class Meta:
         database = database
