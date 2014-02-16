@@ -19,14 +19,15 @@ class User(BaseModel):
     twilio_auth_token = CharField()
                     
 class WebSession(BaseModel):
-    session_id = CharField(primary_key=True)
+    session_id = CharField(unique=True)
     user = ForeignKeyField(User, related_name='web_sessions')
     last_ip = CharField()
     last_seen = DateTimeField()
-        
+
 class Inbox(BaseModel):
     phone_number = CharField(unique=True)
     account = ForeignKeyField(User, related_name='inboxes')
+    voicemail_greeting = CharField()
 
 class ForwardingRule(BaseModel):
     id = PrimaryKeyField()
@@ -35,12 +36,15 @@ class ForwardingRule(BaseModel):
     # destination type; for now, Number or Sip
     dest_type = CharField()
     dest_addr = CharField()
-    active = BooleanField()
+    active = BooleanField(default=True)
 
 class VoiceCall(BaseModel):
-    call_sid = CharField(primary_key=True)
+    sid = CharField(unique=True)
+    
     account = ForeignKeyField(User, related_name='calls')
-    time = DateTimeField(index=True)
+    starttime = DateTimeField(index=True)
+    lastevent = DateTimeField()
+    msg_new = BooleanField(default=True)
     
     call_from = CharField()
     call_to = ForeignKeyField(Inbox, related_name='calls')
@@ -54,17 +58,20 @@ class VoiceCall(BaseModel):
 
     call_duration = IntegerField()
 
-class VoiceCallRecording(BaseModel):
-    recording_sid = CharField(primary_key=True)
-    recording_duration = IntegerField()
-    recording_url = CharField()
+class Voicemail(BaseModel):
+    sid = CharField(unique=True)
+    duration = IntegerField()
+    url = CharField()
     call = ForeignKeyField(VoiceCall, related_name='recordings')
+    msg_new = BooleanField(default=True)
 
 class TextMessage(BaseModel):
-    message_sid = CharField(primary_key=True)
+    sid = CharField(unique=True)
     inbox = ForeignKeyField(Inbox, related_name='texts')
     time = DateTimeField(index=True)
+    msg_new = BooleanField(default=True)
 
+    msg_with = CharField()
     msg_from = CharField()
     msg_to = CharField()
     msg_body = CharField()
@@ -81,7 +88,7 @@ def init_schema():
         Inbox,
         ForwardingRule,
         VoiceCall,
-        VoiceCallRecording,
+        Voicemail,
         TextMessage,
         TextAttachment]:
         table.create_table(fail_silently=True)
