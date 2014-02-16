@@ -35,7 +35,7 @@ class ForwardingRule(BaseModel):
     inbox = ForeignKeyField(Inbox, related_name='forwarding_rules')
     name = CharField();
     
-    max_ring_time = IntegerField(default=30)
+    max_ring_time = IntegerField(null=True)
     # destination type; must be something supported by TwiML (e.g. Number, Sip)
     dest_type = CharField()
     dest_addr = CharField()
@@ -53,13 +53,13 @@ class VoiceCall(BaseModel):
     call_to = ForeignKeyField(Inbox, related_name='calls')
     call_status = CharField()
 
-    caller_id_string = CharField(default='')
-    from_city = CharField(default='')
-    from_state = CharField(default='')
-    from_zip = CharField(default='')
-    from_country = CharField(default='')
+    caller_id_string = CharField(null=True)
+    from_city = CharField(null=True)
+    from_state = CharField(null=True)
+    from_zip = CharField(null=True)
+    from_country = CharField(null=True)
 
-    call_duration = IntegerField(default=0)
+    call_duration = IntegerField(null=True)
 
 class Voicemail(BaseModel):
     sid = CharField(unique=True)
@@ -78,6 +78,11 @@ class TextMessage(BaseModel):
     msg_from = CharField()
     msg_to = CharField()
     msg_body = CharField()
+
+    from_city = CharField(null=True)
+    from_state = CharField(null=True)
+    from_zip = CharField(null=True)
+    from_country = CharField(null=True)
 
 class TextAttachment(BaseModel):
     message = ForeignKeyField(TextMessage, related_name='attachments')

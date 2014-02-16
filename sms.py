@@ -3,6 +3,7 @@
 from model import *
 import cgi
 import datetime
+import logging
 
 form = cgi.FieldStorage()
 
@@ -20,8 +21,11 @@ msg = TextMessage.create(sid=form.getfirst('MessageSid'),
                          msg_with=form.getfirst('From'),
                          msg_from=form.getfirst('From'),
                          msg_to=form.getfirst('To'),
-                         msg_body=form.getfirst('Body'))
-msg.save()
+                         msg_body=form.getfirst('Body'),
+                         from_city=form.getfirst('FromCity'),
+                         from_state=form.getfirst('FromState'),
+                         from_zip=form.getfirst('FromZip'),
+                         from_country=form.getfirst('FromCountry'))
 
 for a in range(int(form.getfirst('NumMedia'))):
     content_type = form.getfirst('MediaContentType%d' % a)

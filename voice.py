@@ -32,13 +32,14 @@ except VoiceCall.DoesNotExist:
     call_rec.starttime=now
 
 call_rec.lastevent = now
-call_rec.call_from = form.getfirst('From') or ''
-call_rec.call_status = status
-call_rec.from_city = form.getfirst('FromCity') or ''
-call_rec.from_state = form.getfirst('FromState') or ''
-call_rec.from_zip = form.getfirst('FromZip') or ''
-call_rec.from_country = form.getfirst('FromCountry') or ''
-call_rec.call_duration = int(form.getfirst('CallDuration') or 0)
+# TODO I am sure there is an easier way to do this
+if form.getfirst('From'): call_rec.call_from = form.getfirst('From')
+if status: call_rec.call_status = status
+if form.getfirst('FromCity'): call_rec.from_city = form.getfirst('FromCity')
+if form.getfirst('FromState'): call_rec.from_state = form.getfirst('FromState')
+if form.getfirst('FromZip'): call_rec.from_zip = form.getfirst('FromZip')
+if form.getfirst('FromCountry'): call_rec.from_country = form.getfirst('FromCountry')
+if form.getfirst('CallDuration'): call_rec.call_duration = int(form.getfirst('CallDuration'))
 call_rec.save()
 
 if form.getfirst('RecordingSid'):
