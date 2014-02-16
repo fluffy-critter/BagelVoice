@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 from model import *
+import control
 import cgi
-import datetime
 import os
 
 form = cgi.FieldStorage()
@@ -12,76 +12,64 @@ Content-type: text/xml;charset=utf-8
 
 """
 
-print '<Response>'
+responseBody = None
 
 dispatch = os.getenv('PATH_INFO')
-status = form.getfirst('CallStatus')
 
-user = User.get(User.twilio_sid == form.getfirst('AccountSid'))
-inbox = Inbox.get(Inbox.phone_number == form.getfirst('To'))
-
-now = datetime.datetime.now()
-
-try:
-    call_rec = VoiceCall.get(VoiceCall.sid == form.getfirst('CallSid'))
-except VoiceCall.DoesNotExist:
-    call_rec = VoiceCall()
-    call_rec.sid=form.getfirst('CallSid')
-    call_rec.account=user
-    call_rec.call_to=inbox
-    call_rec.starttime=now
-
-call_rec.lastevent = now
-# TODO I am sure there is an easier way to do this
-if form.getfirst('From'): call_rec.call_from = form.getfirst('From')
-if status: call_rec.call_status = status
-if form.getfirst('FromCity'): call_rec.from_city = form.getfirst('FromCity')
-if form.getfirst('FromState'): call_rec.from_state = form.getfirst('FromState')
-if form.getfirst('FromZip'): call_rec.from_zip = form.getfirst('FromZip')
-if form.getfirst('FromCountry'): call_rec.from_country = form.getfirst('FromCountry')
-if form.getfirst('CallDuration'): call_rec.call_duration = int(form.getfirst('CallDuration'))
-call_rec.save()
+if not form.getfirst('Direction') or form.getfirst('Direction') == 'inbound':
+    inbound=True
+else:
+    inbound=False
+    
+event = control.getEvent(form=form,
+                         sidField='CallSid',
+                         inbound=inbound)
 
 if form.getfirst('RecordingSid'):
-    voicemail = Voicemail.create(call=call_rec,
-                                 sid=form.getfirst('RecordingSid'),
-                                 duration=int(form.getfirst('RecordingDuration') or 0),
-                                 url=form.getfirst('RecordingUrl'),
-                                 msg_new=True)
+    Attachment.create(sid=form.getfirst('RecordingSid'),
+        duration=int(int(form.getfirst('RecordingDuration') or 0)),
+        url='%s.mp3' % form.getfirst('RecordingUrl'),
+        mime_type = 'audio/mpeg',
+        event=event)
 
+responseBody = None
+    
+# Blacklist unwanted callers
+if event.conversation.associate.blocked:
+    responseBody = '<Reject>'
+    event.status = 'rejected'
+    event.save()
 
-
-# TODO: blacklisting
-
-handled = False
-if dispatch == '/enter-call':
+if not responseBody and dispatch == '/enter-call':
     call_timeout = 30
-    forward_string = ''
-    for fwd in inbox.forwarding_rules:
+    dialString = ''
+    for fwd in event.inbox.routes:
         if fwd.active:
             if fwd.max_ring_time:
                 call_timeout = min(call_timeout, fwd.max_ring_time)
-            forward_string += '<{type}>{addr}</{type}>'.format(type=fwd.dest_type,addr=fwd.dest_addr)
-    if len(forward_string):
-        print '<Dial action="post-call" timeout="%d">' % call_timeout
-        print forward_string
-        print '</Dial>'
-        handled = True
+            dialString += '<{type}>{addr}</{type}>'.format(
+                type=fwd.dest_type,
+                addr=fwd.dest_addr
+                )
+    if dialString:
+        responseBody = '<Dial action="post-call" timeout="%d">%s</Dial>' % (
+            call_timeout,
+            dialString)
     else:
         dispatch = '/post-call'
 
-if dispatch == '/post-call':
-    if status == 'completed':
-        print '<Hangup>'
+if not responseBody and dispatch == '/post-call':
+    if event.status == 'completed':
+        responseBody = '<Hangup>'
     else:
-        print '<Play>%s</Play><Record action="post-vm" maxLength="240" />' % inbox.voicemail_greeting
-    handled = True
+        responseBody = '<Play>%s</Play><Record action="post-vm" maxLength="240" />' % inbox.voicemail_greeting
 
-if dispatch == '/post-vm':
-    print '<Say>Your voicemail has been recorded. Thank you.</Say>'
-    handled = True
+if not responseBody and dispatch == '/post-vm':
+    responseBody = '<Say>Your voicemail has been recorded. Thank you.</Say>'
 
-if not handled:
-    print '<Say>An error occurred. Please try again later.</Say>'
+if not responseBody:
+    responseBody = '<Say>An unknown error occurred. Please try again later.</Say>'
 
+print '<Response>'
+print responseBody
 print '</Response>'

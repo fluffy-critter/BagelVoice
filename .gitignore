@@ -1,1 +1,2 @@
-voicebox.db
+db/voicebox.db
+bootstrap.py

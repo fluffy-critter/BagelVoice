@@ -11,28 +11,32 @@ class BaseModel(Model):
     def update_schema():
         ''' do nothing by default '''
 
+# A user, with a 1:1 mapping to a Twilio account
 class User(BaseModel):
     username = CharField(null=False,unique=True)
     password = CharField()
     email = CharField(unique=True)
     twilio_sid = CharField(unique=True)
     twilio_auth_token = CharField()
-                    
+
+# User login sessions
 class WebSession(BaseModel):
     session_id = CharField(unique=True)
     user = ForeignKeyField(User, related_name='web_sessions')
     last_ip = CharField()
     last_seen = DateTimeField()
 
+# An inbox, i.e. a phone number
 class Inbox(BaseModel):
-    owner = ForeignKeyField(User, related_name='inboxes')
+    user = ForeignKeyField(User, related_name='inboxes')
     phone_number = CharField(unique=True)
     name = CharField()
     voicemail_greeting = CharField()
 
-class ForwardingRule(BaseModel):
+# Routes for a call to take
+class CallRoute(BaseModel):
     id = PrimaryKeyField()
-    inbox = ForeignKeyField(Inbox, related_name='forwarding_rules')
+    inbox = ForeignKeyField(Inbox, related_name='routes')
     name = CharField();
     
     max_ring_time = IntegerField(null=True)
@@ -41,68 +45,72 @@ class ForwardingRule(BaseModel):
     dest_addr = CharField()
     active = BooleanField(default=True)
 
-class VoiceCall(BaseModel):
-    sid = CharField(unique=True)
-    
-    account = ForeignKeyField(User, related_name='calls')
-    starttime = DateTimeField(index=True)
-    lastevent = DateTimeField()
-    msg_new = BooleanField(default=True)
-    
-    call_from = CharField()
-    call_to = ForeignKeyField(Inbox, related_name='calls')
-    call_status = CharField()
 
-    caller_id_string = CharField(null=True)
+# Someone with whom a conversation occurs
+class Associate(BaseModel):
+    user = ForeignKeyField(User, related_name='phonebook')
+    display_name = CharField(null=True)
+    phone_number = CharField()
+    blocked = BooleanField(default=False)
     from_city = CharField(null=True)
     from_state = CharField(null=True)
     from_zip = CharField(null=True)
     from_country = CharField(null=True)
 
+    class Meta:
+        indexes = (
+            # ensure that any given phone number only appears once
+            (('user', 'phone_number'), True),
+            )
+    
+# A conversation thread
+class Conversation(BaseModel):
+    user = ForeignKeyField(User, related_name='threads')
+    inbox = ForeignKeyField(Inbox, related_name='threads')
+    associate = ForeignKeyField(Associate, related_name='threads')
+    last_update = DateTimeField(index=True)
+    unread = BooleanField(default=True)
+    class Meta:
+        indexes = (
+            (('last_update','inbox','associate'),False),
+            (('last_update','user','associate'),False),
+            )
+        order_by = ('-last_update',)    
+
+# An event in a conversation
+class Event(BaseModel):
+    sid = CharField(unique=True)
+    inbox = ForeignKeyField(Inbox, related_name='events')
+    conversation = ForeignKeyField(Conversation, related_name='events')
+    time = DateTimeField()
+    last_update = DateTimeField()
+    inbound = BooleanField()
     call_duration = IntegerField(null=True)
-
-class Voicemail(BaseModel):
+    message_body = CharField(null=True)
+    status = CharField(null=True)
+    caller_id_string = CharField(null=True)
+    class Meta:
+        order_by = ('-time',)
+    
+class Attachment(BaseModel):
     sid = CharField(unique=True)
-    duration = IntegerField()
+    duration = IntegerField(null=True)
     url = CharField()
-    call = ForeignKeyField(VoiceCall, related_name='recordings')
+    mime_type = CharField()
+    event = ForeignKeyField(Event, related_name='media')
     msg_new = BooleanField(default=True)
-
-class TextMessage(BaseModel):
-    sid = CharField(unique=True)
-    inbox = ForeignKeyField(Inbox, related_name='texts')
-    time = DateTimeField(index=True)
-    msg_new = BooleanField(default=True)
-
-    msg_with = CharField()
-    msg_from = CharField()
-    msg_to = CharField()
-    msg_body = CharField()
-
-    from_city = CharField(null=True)
-    from_state = CharField(null=True)
-    from_zip = CharField(null=True)
-    from_country = CharField(null=True)
-
-    send_status = CharField(null=True)
-
-class TextAttachment(BaseModel):
-    message = ForeignKeyField(TextMessage, related_name='attachments')
-    content_type = CharField()
-    content_url = CharField()
 
 def create_tables():
     for table in [
         User,
         WebSession,
         Inbox,
-        ForwardingRule,
-        VoiceCall,
-        Voicemail,
-        TextMessage,
-        TextAttachment]:
+        CallRoute,
+        Associate,
+        Conversation,
+        Event,
+        Attachment
+        ]:
         table.create_table(fail_silently=True)
         table.update_schema()
 
-        
-        

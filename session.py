@@ -14,18 +14,20 @@ form = cgi.FieldStorage()
 ipAddr = os.environ.get('REMOTE_ADDR')
 
 def get_form():
-    ''' Gets the parsed CGI form values. MUST be retrieved from here. '''
+    # Gets the parsed CGI form values. MUST be retrieved from here.
     return form
 
 
 def get_user():
-    ''' Get the currently logged-in user, or presents a login form and exits if there is none'''
+    # Get the currently logged-in user, or presents a login form and
+    # exits if there is none
     cookie = Cookie.SimpleCookie()
     cookie_string = os.environ.get('HTTP_COOKIE');
     if cookie_string:
         cookie.load(cookie_string)
 
     # check for an existing valid session, and return the user if so
+    # TODO also clean up stale cookies at some point
     session_cookie = cookie.get('session', None)
     if session_cookie:
         try:
@@ -46,8 +48,11 @@ def get_user():
                                      user=user,
                                      last_ip=ipAddr,
                                      last_seen = datetime.datetime.now())
-            cookie["session"] = sess.session_id
+            cookie['session'] = sess.session_id
+            cookie['session']['expires'] = 86400*14
             print cookie
+            # TODO should probably output Location and redirect back
+            # to the original page
             return user
         else:
             # Login failed; set an error string to that effect
@@ -58,7 +63,7 @@ def get_user():
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="voicebox.css">
+<link rel="stylesheet" href="style.css">
 <title>Login required</title>
 </head><body class="loginForm">
 
