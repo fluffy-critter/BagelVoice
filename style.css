@@ -1,3 +1,11 @@
+body {
+    font-family: "Helvetica", "Sans Serif"
+}
+
+h1, h2, h3 {
+    font-family: "Gill Sans", "Helvetica", "Sans Serif"
+}
+
 .thread {
     border: solid black 1px;
     margin-bottom: 1ex;
@@ -64,6 +72,20 @@
 
 .thread .outbound .text {
     text-align: right;
+}
+
+.attachbody {
+    clear: both;
+}
+.attachbody img {
+    max-width: 100%;
+}
+.media {
+    font-size: x-small;
+}
+.media .duration {
+    color: #777;
+    font-style: italic;
 }
 
 .thread .footer {

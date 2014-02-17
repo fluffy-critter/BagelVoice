@@ -70,10 +70,30 @@ for thread in user.threads:
         
         if event.message_body:
             print '<div class="text">%s</div>' % event.message_body
+	elif event.type:
+            print '<div class="type">%s</div> ' % event.type
 
         for attach in event.media:
-            print '<div class="media"><a href="%s">%s</a></div>' % (attach.url,
-                                                                    attach.mime_type)
+            print '<div class="media">'
+            attachBody = None
+            mimeclass = attach.mime_type.split('/')[0]
+            if mimeclass == 'audio':
+                attachBody = '<audio controls="controls"><source src="%s" type="%s"></audio>' % (
+                    attach.url, attach.mime_type)
+            elif mimeclass == 'image':
+                attachBody = '<img src="%s">' % attach.url
+            elif mimeclass == 'video':
+                attachBody = '<video controls="controls"><source src="%s" type="%s"></video>' % (
+                    attach.url, attach.mime_type)
+            if attachBody:
+                print '<div class="attachbody">%s</div>' % attachBody
+            print '<a href="%s">original %s</a>' % (attach.url, mimeclass)
+            if attach.duration:
+                print '<span class="duration">(%d:%02d)</span>' % (int(attach.duration)/60,
+                                                                 attach.duration%60)
+
+
+            print '</div>'
         print '</div>'
     print '</div>'
 

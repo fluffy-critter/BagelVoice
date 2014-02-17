@@ -1,0 +1,10 @@
+# Voicebox configuration file
+# Copy this to config.py and edit the values as appropriate
+
+configuration = {
+    # Filename format for the logger; format codes are as in strftime
+    'log-pathspec': 'logs/voicebox.log.%Y%m%d',
+
+    # URL to the installation root
+    'root-url': 'https://example.com/voicebox'
+}

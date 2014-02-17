@@ -25,7 +25,8 @@ else:
     
 event = control.getEvent(form=form,
                          sidField='CallSid',
-                         inbound=inbound)
+                         inbound=inbound,
+                         type="voice")
 
 if form.getfirst('RecordingSid'):
     Attachment.create(sid=form.getfirst('RecordingSid'),
@@ -64,7 +65,12 @@ if not responseBody and dispatch == '/post-call':
     if event.status == 'completed':
         responseBody = '<Hangup>'
     else:
-        responseBody = '<Play>%s</Play><Record action="post-vm" maxLength="240" />' % inbox.voicemail_greeting
+        inbox = event.inbox
+        if inbox.voicemail_greeting:
+            responseBody = '<Play>%</Play>' % inbox.voicemail_greeting
+        else:
+            responseBody = '<Say>Please leave a message.</Say>'
+        responseBody += '<Record action="post-vm" maxLength="240" />'
 
 if not responseBody and dispatch == '/post-vm':
     responseBody = '<Say>Your voicemail has been recorded. Thank you.</Say>'

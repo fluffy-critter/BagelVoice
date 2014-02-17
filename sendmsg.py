@@ -6,6 +6,7 @@ import model
 import datetime
 from model import Event
 from twilio.rest import TwilioRestClient
+import config
 
 user = session.get_user()
 form = session.get_form()
@@ -22,7 +23,7 @@ with model.transaction():
         body=body,
         from_=form.getfirst('From'),
         to=form.getfirst('To'),
-        status_callback='https://vbx.e-snail.us/sms.py/outgoing' #FIXME
+        status_callback=config.configuration['root-url'] + '/sms.py/outgoing'
     )
 
     now = datetime.datetime.now()
@@ -46,7 +47,8 @@ with model.transaction():
             message_body=body,
             time=now,
             last_update=now,
-            status=message.status)
+            status=message.status,
+            type="text")
         conversation.last_update = now
         conversation.save()
 

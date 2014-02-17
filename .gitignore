@@ -1,2 +1,5 @@
 db/voicebox.db
 bootstrap.py
+*.pyc
+*.swp
+config.py

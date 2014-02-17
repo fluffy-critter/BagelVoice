@@ -46,7 +46,7 @@ def getConversation(form, inbox, associate):
             associate = associate)
     return conv
 
-def getEvent(form, sidField, inbound):
+def getEvent(form, sidField, inbound, type):
     if inbound:
         whoField = 'From'
         inboxField = 'To'
@@ -70,6 +70,7 @@ def getEvent(form, sidField, inbound):
             conversation=conversation,
             time=now,
             last_update=now,
+            type=type
             )
         conversation.last_update = now
         conversation.unread = True

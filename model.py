@@ -34,7 +34,7 @@ class Inbox(BaseModel):
     user = ForeignKeyField(User, related_name='inboxes')
     phone_number = CharField(unique=True)
     name = CharField()
-    voicemail_greeting = CharField()
+    voicemail_greeting = CharField(null=True)
 
 # Routes for a call to take
 class CallRoute(BaseModel):
@@ -85,6 +85,7 @@ class Event(BaseModel):
     sid = CharField(unique=True)
     inbox = ForeignKeyField(Inbox, related_name='events')
     conversation = ForeignKeyField(Conversation, related_name='events')
+    type = CharField()
     time = DateTimeField()
     last_update = DateTimeField()
     inbound = BooleanField()

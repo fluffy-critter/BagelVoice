@@ -20,7 +20,8 @@ dispatch = os.getenv('PATH_INFO')
 
 event = control.getEvent(form=form,
                          sidField='MessageSid',
-                         inbound=(dispatch == '/incoming'))
+                         inbound=(dispatch == '/incoming'),
+                         type="text")
 
 if event.conversation.associate.blocked:
     # TODO: make this do something useful
