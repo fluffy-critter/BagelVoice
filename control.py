@@ -16,14 +16,18 @@ def getInbox(form, user, inboxField):
     return Inbox.get(Inbox.user == user
                      and Inbox.phone_number == form.getfirst(inboxField))
 
-def getAssociate(form, user, whoField):
+def getAssociate(form, user, whoField=None, whoValue=None):
+    if whoValue:
+        phone_number = whoValue
+    else:
+        phone_number = form.getfirst(whoField)
     try:
         assoc = Associate.get(Associate.user == user
-                              and Associate.phone_number == form.getfirst(whoField))
+                              and Associate.phone_number == phone_number)
     except Associate.DoesNotExist:
         assoc = Associate()
         assoc.user = user
-        assoc.phone_number = form.getfirst(whoField)
+        assoc.phone_number = phone_number
     if applyAttribs(assoc, form, {
             'FromCity'   : 'from_city',
             'FromState'  : 'from_state',

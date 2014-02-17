@@ -13,16 +13,22 @@ logger = logging.getLogger(__name__)
 form = cgi.FieldStorage()
 ipAddr = os.environ.get('REMOTE_ADDR')
 
+user = None
+
 def get_form():
     # Gets the parsed CGI form values. MUST be retrieved from here.
+    global form
     return form
 
+def get_user(doLogin=True):
+    global user
+    if user:
+        return user
 
-def get_user():
     # Get the currently logged-in user, or presents a login form and
     # exits if there is none
     cookie = Cookie.SimpleCookie()
-    cookie_string = os.environ.get('HTTP_COOKIE');
+    cookie_string = os.environ.get('HTTP_COOKIE')
     if cookie_string:
         cookie.load(cookie_string)
 
@@ -35,7 +41,8 @@ def get_user():
             sess.last_seen = datetime.datetime.now()
             sess.last_ip = ipAddr
             sess.save()
-            return sess.user
+            user = sess.user
+            return user
         except WebSession.DoesNotExist:
             logger.info('Got invalid session id "%s"', session_cookie.value)
 
@@ -57,6 +64,13 @@ def get_user():
         else:
             # Login failed; set an error string to that effect
             login_error_string = "Username/password did not match our records"
+
+    if not doLogin:
+        print """Status: 403 Forbidden
+Content-type: text/html
+
+You are not authorized to view this resource."""
+        exit(0)
 
     print """Content-type: text/html
 

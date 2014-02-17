@@ -10,9 +10,7 @@ import config
 
 user = session.get_user()
 form = session.get_form()
-
 inbox = control.getInbox(form, user, 'From')
-assoc = control.getAssociate(form, user, 'To')
 
 client = TwilioRestClient(user.twilio_sid, user.twilio_auth_token)
 
@@ -38,6 +36,7 @@ with model.transaction():
         conversation.save()
     except Event.DoesNotExist:
         # ... but not likely
+        assoc = control.getAssociate(form, user, whoValue=message.to)
         conversation = control.getConversation(form, inbox, assoc)
         event = Event.create(
             sid=message.sid,
