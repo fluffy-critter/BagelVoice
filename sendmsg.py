@@ -3,7 +3,7 @@
 import session
 import control
 import model
-import datetime
+import timeutil
 from model import Event
 from twilio.rest import TwilioRestClient
 import config
@@ -24,7 +24,7 @@ with model.transaction():
         status_callback=config.configuration['root-url'] + '/sms.py/outgoing'
     )
 
-    now = datetime.datetime.now()
+    now = timeutil.getTime()
     try:
         # It's possible that the callback fired before we got here...
         event = Event.get(Event.sid == message.sid)

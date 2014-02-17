@@ -51,7 +51,7 @@ def renderEvent(event):
     print >>out, '</div>'
     return out.getvalue()
 
-def renderThread(thread):
+def renderThread(thread, limit=None):
     out = StringIO()
     print >>out, '<div id="thread-%s" class="thread%s">' % (thread.id, thread.unread and ' unread' or '')
 
@@ -75,14 +75,16 @@ def renderThread(thread):
 <form method="POST" action="sendmsg.py">
 <input type="hidden" name="From" value="%s">
 <input type="hidden" name="To" value="%s">
-<input type="text" size="80" name="Body"></textarea>
+<input type="text" size="80" name="Body">
 <input type="submit" value="Send">
 </form>
 </div>''' % (inbox.phone_number, associate.phone_number)
 
     print >>out, '<div class="events">'
-    for event in thread.events:
+    for event in thread.events.limit(limit):
         print >>out, renderEvent(event)
+    if limit and thread.events.count() > limit:
+        print >>out, '<div class="more">&hellip;</div>'
     print >>out, '</div>'
 
     print >>out, '<div class="footer"></div>'

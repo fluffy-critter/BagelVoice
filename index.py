@@ -30,7 +30,7 @@ print """Content-type: text/html
 """
 
 for thread in user.threads:
-    print render.renderThread(thread)
+    print render.renderThread(thread, limit=3)
 
 print '<script>pollForUpdates("%s/info.py", %d);</script>' % (config.configuration['root-url'], info.lastitem())
 print '</body></html>'

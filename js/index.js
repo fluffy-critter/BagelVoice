@@ -5,13 +5,13 @@ function pollForUpdates(infoPath, firstTime) {
 
     function pollUpdate() {
 	$.ajax({
-	    url: infoPath,
+	    url: infoPath + '?since=' + lastUpdate,
 	    dataType: "json",
 	    success: function(json) {
-		if (json.lastitem > lastUpdate) {
-		    ++count;
-		    lastUpdate = json.lastitem;
-		    document.title = oldTitle + '(' + count + ')';
+		count += json.updatedThreads.length;
+		lastUpdate = json.lastitem;
+		if (count) {
+		    document.title = oldTitle + ' (' + count + ')';
 		}
 	    }
 	});

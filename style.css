@@ -70,6 +70,13 @@ h1, h2, h3 {
     padding: 1ex;
 }
 
+.thread .more {
+    text-align: center;
+    font-style: italic;
+    border-top: solid #777 1px;
+    background: #eee;
+}
+
 .thread .inbound .text {
     text-align: left;
 }

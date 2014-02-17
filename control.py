@@ -1,5 +1,5 @@
 from model import *
-import datetime
+import timeutil
 
 def applyAttribs(obj, form, keyMapping):
     needsSave = False
@@ -46,7 +46,7 @@ def getConversation(form, inbox, associate):
         conv = Conversation.create(
             user = inbox.user,
             inbox = inbox,
-            last_update = datetime.datetime.now(),
+            last_update = timeutil.getTime(),
             associate = associate)
     return conv
 
@@ -64,7 +64,7 @@ def getEvent(form, sidField, inbound, type):
         user = getUser(form)
         inbox = getInbox(form, user, inboxField)
         associate = getAssociate(form, inbox.user, whoField)
-        now = datetime.datetime.now()
+        now = timeutil.getTime()
         conversation = getConversation(form, inbox, associate)
         
         event = Event.create(

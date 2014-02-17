@@ -3,6 +3,7 @@ from peewee import *
 database = SqliteDatabase('db/voicebox.db')
 database.connect()
 
+# Run inside a transaction
 def transaction():
     return database.transaction()
 

@@ -3,7 +3,7 @@ from model import WebSession, User
 import cgi
 import Cookie
 import os
-import datetime
+import timeutil
 import logging
 import bcrypt
 import uuid
@@ -38,7 +38,7 @@ def get_user(doLogin=True):
     if session_cookie:
         try:
             sess = WebSession.get(WebSession.session_id == session_cookie.value)
-            sess.last_seen = datetime.datetime.now()
+            sess.last_seen = timeutil.getTime()
             sess.last_ip = ipAddr
             sess.save()
             user = sess.user
@@ -54,7 +54,7 @@ def get_user(doLogin=True):
             sess = WebSession.create(session_id=uuid.uuid4().hex,
                                      user=user,
                                      last_ip=ipAddr,
-                                     last_seen = datetime.datetime.now())
+                                     last_seen = timeutil.getTime())
             cookie['session'] = sess.session_id
             cookie['session']['expires'] = 86400*14
             print cookie
