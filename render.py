@@ -57,12 +57,12 @@ def renderThread(thread, limit=None):
 
     print >>out, '<div class="who">'
     inbox = thread.inbox
-    associate = thread.associate
-    print >>out, '<span class="phone">%s</span>' % associate.phone_number
-    if associate.display_name:
-        print >>out, '<span class="name">%s</span>' % associate.display_name
+    peer = thread.peer
+    print >>out, '<span class="phone">%s</span>' % peer.phone_number
+    if peer.display_name:
+        print >>out, '<span class="name">%s</span>' % peer.display_name
     locStr = ''
-    for part in [associate.from_city, associate.from_state, associate.from_country]:
+    for part in [peer.from_city, peer.from_state, peer.from_country]:
         if part:
             if locStr: locStr += ', '
             locStr += part
@@ -78,7 +78,7 @@ def renderThread(thread, limit=None):
 <input type="text" size="80" name="Body">
 <input type="submit" value="Send">
 </form>
-</div>''' % (inbox.phone_number, associate.phone_number)
+</div>''' % (inbox.phone_number, peer.phone_number)
 
     print >>out, '<div class="events">'
     for event in thread.events.limit(limit):

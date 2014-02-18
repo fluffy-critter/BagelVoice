@@ -23,7 +23,7 @@ event = control.getEvent(form=form,
                          inbound=(len(argv) > 1 and argv[1] == '/incoming'),
                          type="text")
 
-if event.conversation.associate.blocked:
+if event.conversation.peer.blocked:
     # TODO: make this do something useful
     event.status = 'rejected'
     event.save()

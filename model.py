@@ -77,8 +77,8 @@ class CallRouteRule(BaseModel):
     active_days = CharField()
 
 # Someone with whom a conversation occurs
-class Associate(BaseModel):
-    user = ForeignKeyField(User, related_name='phonebook')
+class Peer(BaseModel):
+    user = ForeignKeyField(User, related_name='peers')
     display_name = CharField(null=True)
     phone_number = CharField()
     blocked = BooleanField(default=False)
@@ -97,13 +97,13 @@ class Associate(BaseModel):
 class Conversation(BaseModel):
     user = ForeignKeyField(User, related_name='threads')
     inbox = ForeignKeyField(Inbox, related_name='threads')
-    associate = ForeignKeyField(Associate, related_name='threads')
+    peer = ForeignKeyField(Peer, related_name='threads')
     last_update = DateTimeField(index=True)
     unread = BooleanField(default=True)
     class Meta:
         indexes = (
-            (('last_update','inbox','associate'),False),
-            (('last_update','user','associate'),False),
+            (('last_update','inbox','peer'),False),
+            (('last_update','user','peer'),False),
             )
         order_by = ('-last_update',)    
 
@@ -123,6 +123,31 @@ class Event(BaseModel):
     class Meta:
         order_by = ('-time',)
     
+# Queue of pending notifications
+# while n=NotificationQueue.get() and n.time < now:
+#   get event, notification
+#   n.delete()
+#   try:
+#     handle notification
+#   except:
+#     NotificationQueue.create(
+class NotificationQueue(BaseModel):
+    # when to next try the notification
+    time = DateTimeField(index=True)
+    # the event to notify them about
+    event = ForeignKeyField(Event)
+    # the notification method
+    notification = ForeignKeyField(Notification)
+    # How many retries are left
+    retries_left = IntegerField()
+    # How long to wait before the next retry (exponential backoff)
+    retry_wait = IntegerField()
+    class Meta:
+        order_by = ('time',)
+        indexes = (
+            (('event', 'notification'), True),
+            )
+
 class Attachment(BaseModel):
     sid = CharField(unique=True)
     duration = IntegerField(null=True)
@@ -139,7 +164,7 @@ def create_tables():
         Inbox,
         CallRoute,
         CallRouteRule,
-        Associate,
+        Peer,
         Conversation,
         Event,
         Attachment

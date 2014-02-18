@@ -36,8 +36,8 @@ with model.transaction():
         conversation.save()
     except Event.DoesNotExist:
         # ... but not likely
-        assoc = control.getAssociate(form, user, whoValue=message.to)
-        conversation = control.getConversation(form, inbox, assoc)
+        peer = control.getPeer(form, user, whoValue=message.to)
+        conversation = control.getConversation(form, inbox, peer)
         event = Event.create(
             sid=message.sid,
             inbound=False,

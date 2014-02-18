@@ -8,8 +8,6 @@ import session
 import datetime
 import pytz
 
-#TODO: switch to twilio.twiml
-
 form = session.get_form()
 
 print """\
@@ -42,8 +40,8 @@ if form.getfirst('RecordingSid'):
 responseBody = None
     
 # Blacklist unwanted callers
-if event.conversation.associate.blocked:
-    responseBody = '<Reject>'
+if event.conversation.peer.blocked:
+    responseBody = '<Reject/>'
     event.status = 'rejected'
     event.save()
 
@@ -59,12 +57,18 @@ if not responseBody and state == 'enter-call':
         if active and fwd.rules.count():
             active = False
             for rule in fwd.rules:
+                if rule.active_days.find("MTWRFSU"[localNow.weekday()]) < 0:
+                    # This rule doesn't fire on this day of the week
+                    continue
+
                 if rule.start_time < rule.end_time:
-                    if rule.start_time <= localTime and rule.end_time >= localTime:
+                    if rule.start_time <= localTime and localTime < rule.end_time:
                         active = True
+                        break
                 else:
-                    if rule.start_time > localTime or rule.end_time < localTime:
+                    if localTime < rule.start_time or rule.end_time <= localTime:
                         active = True
+                        break
 
         if active:
             if not call_timeout:
@@ -84,11 +88,11 @@ if not responseBody and state == 'enter-call':
 
 if not responseBody and state == 'post-call':
     if event.status == 'completed':
-        responseBody = '<Hangup>'
+        responseBody = '<Hangup/>'
     else:
         inbox = event.inbox
         if inbox.voicemail_greeting:
-            responseBody = '<Play>%</Play>' % inbox.voicemail_greeting
+            responseBody = '<Play>%s</Play>' % inbox.voicemail_greeting
         else:
             responseBody = '<Say>Please leave a message.</Say>'
         responseBody += '<Record action="post-vm" maxLength="240" />'

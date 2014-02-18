@@ -16,38 +16,36 @@ def getInbox(form, user, inboxField):
     return Inbox.get(Inbox.user == user
                      and Inbox.phone_number == form.getfirst(inboxField))
 
-def getAssociate(form, user, whoField=None, whoValue=None):
+def getPeer(form, user, whoField=None, whoValue=None):
     if whoValue:
         phone_number = whoValue
     else:
         phone_number = form.getfirst(whoField)
     try:
-        assoc = Associate.get(Associate.user == user
-                              and Associate.phone_number == phone_number)
-    except Associate.DoesNotExist:
-        assoc = Associate()
-        assoc.user = user
-        assoc.phone_number = phone_number
-    if applyAttribs(assoc, form, {
+        peer = Peer.get(Peer.user == user
+                              and Peer.phone_number == phone_number)
+    except Peer.DoesNotExist:
+        peer = Peer.create(user=user, phone_number=phone_number)
+    if applyAttribs(peer, form, {
             'FromCity'   : 'from_city',
             'FromState'  : 'from_state',
             'FromZip'    : 'from_zip',
             'FromCountry': 'from_country'
             }):
-        assoc.save()
-    return assoc
+        peer.save()
+    return peer
 
-def getConversation(form, inbox, associate):
+def getConversation(form, inbox, peer):
     # TODO create a new conversation if the old one's too old
     try:
         conv = Conversation.get(Conversation.inbox == inbox
-                                and Conversation.associate == associate)
+                                and Conversation.peer == peer)
     except Conversation.DoesNotExist:
         conv = Conversation.create(
             user = inbox.user,
             inbox = inbox,
             last_update = timeutil.getTime(),
-            associate = associate)
+            peer = peer)
     return conv
 
 def getEvent(form, sidField, inbound, type):
@@ -63,9 +61,9 @@ def getEvent(form, sidField, inbound, type):
     except Event.DoesNotExist:
         user = getUser(form)
         inbox = getInbox(form, user, inboxField)
-        associate = getAssociate(form, inbox.user, whoField)
+        peer = getPeer(form, inbox.user, whoField)
         now = timeutil.getTime()
-        conversation = getConversation(form, inbox, associate)
+        conversation = getConversation(form, inbox, peer)
         
         event = Event.create(
             sid=form.getfirst(sidField),
