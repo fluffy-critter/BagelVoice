@@ -22,6 +22,19 @@ class User(BaseModel):
     email = CharField(unique=True)
     twilio_sid = CharField(unique=True)
     twilio_auth_token = CharField()
+    timezone = CharField(default='UTC')
+
+# Notification settings
+class Notification(BaseModel):
+    user = ForeignKeyField(User, related_name='notifications')
+    # notification URI, e.g. mailto:foo@example.com, xmpp:foo@example.com, or aim:aolsystemmsg
+    uri = CharField()
+    # Notify on an incoming SMS
+    notify_sms = BooleanField(default=False)
+    # Notify when a call is received
+    notify_call = BooleanField(default=False)
+    # Notify when a voicemail is received
+    notify_voicemail = BooleanField(default=True)
 
 # User login sessions
 class WebSession(BaseModel):
@@ -39,7 +52,6 @@ class Inbox(BaseModel):
 
 # Routes for a call to take
 class CallRoute(BaseModel):
-    id = PrimaryKeyField()
     inbox = ForeignKeyField(Inbox, related_name='routes')
     name = CharField();
     
@@ -49,6 +61,20 @@ class CallRoute(BaseModel):
     dest_addr = CharField()
     active = BooleanField(default=True)
 
+    class Meta:
+        indexes = (
+            (('inbox', 'dest_type', 'dest_addr'), True),
+            )
+
+# When to activate a call route
+class CallRouteRule(BaseModel):
+    route = ForeignKeyField(CallRoute, related_name='rules')
+    # start time (in user's local timezone)
+    start_time = TimeField()
+    # end time (in user's local timezone); if end_time < start_time then this inverts the rule (i.e. only OUTSIDE this period)
+    end_time = TimeField()
+    # on which days to activate (string containing one or more of MTWRFSU)
+    active_days = CharField()
 
 # Someone with whom a conversation occurs
 class Associate(BaseModel):
@@ -108,9 +134,11 @@ class Attachment(BaseModel):
 def create_tables():
     for table in [
         User,
+        Notification,
         WebSession,
         Inbox,
         CallRoute,
+        CallRouteRule,
         Associate,
         Conversation,
         Event,

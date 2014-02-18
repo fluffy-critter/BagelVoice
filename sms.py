@@ -5,21 +5,22 @@ import control
 import cgi
 import logging
 import os
+import session
 
 #TODO: switch to twilio.twiml
 
-form = cgi.FieldStorage()
+form = session.get_form()
 
 print """\
 Content-type: text/xml;charset=utf-8
 
 """
 
-dispatch = os.getenv('PATH_INFO')
+argv = session.get_argv()
 
 event = control.getEvent(form=form,
                          sidField='MessageSid',
-                         inbound=(dispatch == '/incoming'),
+                         inbound=(len(argv) > 1 and argv[1] == '/incoming'),
                          type="text")
 
 if event.conversation.associate.blocked:

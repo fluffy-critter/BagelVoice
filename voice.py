@@ -4,10 +4,13 @@ from model import *
 import control
 import cgi
 import os
+import session
+import datetime
+import pytz
 
 #TODO: switch to twilio.twiml
 
-form = cgi.FieldStorage()
+form = session.get_form()
 
 print """\
 Content-type: text/xml;charset=utf-8
@@ -16,7 +19,8 @@ Content-type: text/xml;charset=utf-8
 
 responseBody = None
 
-dispatch = os.getenv('PATH_INFO')
+argv = session.get_argv()
+state = len(argv) > 1 and argv[1]
 
 if not form.getfirst('Direction') or form.getfirst('Direction') == 'inbound':
     inbound=True
@@ -43,25 +47,42 @@ if event.conversation.associate.blocked:
     event.status = 'rejected'
     event.save()
 
-if not responseBody and dispatch == '/enter-call':
-    call_timeout = 30
+if not responseBody and state == 'enter-call':
+    call_timeout = None
     dialString = ''
+    localNow = datetime.datetime.now(tz=pytz.timezone(event.inbox.user.timezone))
+    localTime = localNow.time()
+
     for fwd in event.inbox.routes:
-        if fwd.active:
-            if fwd.max_ring_time:
+
+        active = fwd.active
+        if active and fwd.rules.count():
+            active = False
+            for rule in fwd.rules:
+                if rule.start_time < rule.end_time:
+                    if rule.start_time <= localTime and rule.end_time >= localTime:
+                        active = True
+                else:
+                    if rule.start_time > localTime or rule.end_time < localTime:
+                        active = True
+
+        if active:
+            if not call_timeout:
+                call_timeout = fwd.max_ring_time
+            elif fwd.max_ring_time:
                 call_timeout = min(call_timeout, fwd.max_ring_time)
             dialString += '<{type}>{addr}</{type}>'.format(
                 type=fwd.dest_type,
                 addr=fwd.dest_addr
                 )
     if dialString:
-        responseBody = '<Dial action="post-call" timeout="%d">%s</Dial>' % (
-            call_timeout,
+        responseBody = '<Dial action="post-call"%s>%s</Dial>' % (
+            call_timeout and ' timeout="%d"' % call_timeout or '',
             dialString)
     else:
-        dispatch = '/post-call'
+        state = 'post-call'
 
-if not responseBody and dispatch == '/post-call':
+if not responseBody and state == 'post-call':
     if event.status == 'completed':
         responseBody = '<Hangup>'
     else:
@@ -72,11 +93,11 @@ if not responseBody and dispatch == '/post-call':
             responseBody = '<Say>Please leave a message.</Say>'
         responseBody += '<Record action="post-vm" maxLength="240" />'
 
-if not responseBody and dispatch == '/post-vm':
+if not responseBody and state == 'post-vm':
     responseBody = '<Say>Your voicemail has been recorded. Thank you.</Say>'
 
 if not responseBody:
-    responseBody = '<Say>An unknown error occurred. Please try again later.</Say>'
+    responseBody = '<Say>An unknown error occurred. Please try again later. (state=%s)</Say>' % state
 
 print '<Response>'
 print responseBody

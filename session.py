@@ -11,7 +11,7 @@ import uuid
 logger = logging.getLogger(__name__)
 
 form = cgi.FieldStorage()
-ipAddr = os.environ.get('REMOTE_ADDR')
+ipAddr = os.getenv('REMOTE_ADDR')
 
 user = None
 
@@ -19,6 +19,15 @@ def get_form():
     # Gets the parsed CGI form values. MUST be retrieved from here.
     global form
     return form
+
+# Get the page action; argv[0] is a server-relative path to the script handler, argv[1..n] is the verb
+# i.e. /larry/foo.py/handleBlah/more -> ['/larry/foo.py', 'handleBlah', 'more']
+def get_argv():
+    argv=[os.getenv('SCRIPT_NAME')]
+    path=os.getenv('PATH_INFO')
+    if path:
+        argv.extend(path.split('/')[1:])
+    return argv
 
 def get_user(doLogin=True):
     global user
