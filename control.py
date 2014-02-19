@@ -77,13 +77,18 @@ def getEvent(form, sidField, inbound, type):
         conversation.last_update = now
         conversation.unread = True
         conversation.save()
-        
+   
+    # there are several fields that could rightfully become 'status' and we want to guarantee precedence 
+    save = False
+    for field in ['CallStatus', 'DialCallStatus', 'MessageStatus']:
+        if applyAttribs(event, form, { field : 'status' }):
+            save = True    
     if applyAttribs(event, form, {
-        'CallStatus': 'status',
-        'MessageStatus': 'status',
-        'CallDuration': 'duration',
+        'DialCallDuration': 'duration',
         'Body': 'message_body',
         }):
+        save = True
+    if save:
         event.save()
 
     return event

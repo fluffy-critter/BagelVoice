@@ -67,9 +67,8 @@ def get_user(doLogin=True):
             cookie['session'] = sess.session_id
             cookie['session']['expires'] = 86400*14
             print cookie
-            # TODO should probably output Location and redirect back
-            # to the original page
-            return user
+            print "Content-type: text/html\nLocation: %s%s\n\nRedirecting..." % (os.getenv('SCRIPT_NAME'), os.getenv('PATH_INFO'))
+            exit(0)
         else:
             # Login failed; set an error string to that effect
             login_error_string = "Username/password did not match our records"

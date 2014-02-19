@@ -87,7 +87,7 @@ if not responseBody and state == 'enter-call':
         state = 'post-call'
 
 if not responseBody and state == 'post-call':
-    if event.status == 'completed':
+    if event.status == 'completed' or form.getfirst('DialCallStatus') == 'completed':
         responseBody = '<Hangup/>'
     else:
         inbox = event.inbox
