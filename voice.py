@@ -29,13 +29,9 @@ event = control.getEvent(form=form,
                          sidField='CallSid',
                          inbound=inbound,
                          type="voice")
-
-if form.getfirst('RecordingSid'):
-    Attachment.create(sid=form.getfirst('RecordingSid'),
-        duration=int(int(form.getfirst('RecordingDuration') or 0)),
-        url='%s.mp3' % form.getfirst('RecordingUrl'),
-        mime_type = 'audio/mpeg',
-        event=event)
+if state == 'transcribed':
+    # The rest of this handler is pointless
+    exit(0)
 
 responseBody = None
     
@@ -95,7 +91,9 @@ if not responseBody and state == 'post-call':
             responseBody = '<Play>%s</Play>' % inbox.voicemail_greeting
         else:
             responseBody = '<Say>Please leave a message.</Say>'
-        responseBody += '<Record action="post-vm" maxLength="240" />'
+        responseBody += '<Record action="post-vm" maxLength="240" %s/>' % (
+            user.transcribe_voicemail and ' transcribe="true" transcribeCallback="transcribed"'
+            )
 
 if not responseBody and state == 'post-vm':
     responseBody = '<Say>Your voicemail has been recorded. Thank you.</Say>'

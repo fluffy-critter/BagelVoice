@@ -9,8 +9,6 @@ h1, h2, h3 {
 .thread {
     border: solid black 1px;
     margin-bottom: 1ex;
-    float: left;
-    clear: left;
     box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
 }
 
@@ -24,6 +22,8 @@ h1, h2, h3 {
     font-size: small;
     padding: 0.1ex;
 }
+
+.thread.unread .who { background: #fcc; }
 
 .thread .who .phone {
     font-weight: bold;
@@ -70,11 +70,13 @@ h1, h2, h3 {
     padding: 1ex;
 }
 
-.thread .more {
+.thread a.more {
     text-align: center;
     font-style: italic;
     border-top: solid #777 1px;
     background: #eee;
+    display: block;
+    clear: both;
 }
 
 .thread .inbound .text {

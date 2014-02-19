@@ -67,7 +67,7 @@ def get_user(doLogin=True):
             cookie['session'] = sess.session_id
             cookie['session']['expires'] = 86400*14
             print cookie
-            print "Content-type: text/html\nLocation: %s%s\n\nRedirecting..." % (os.getenv('SCRIPT_NAME'), os.getenv('PATH_INFO'))
+            print "Content-type: text/html\nLocation: %s%s\n\nRedirecting..." % (os.getenv('SCRIPT_NAME'), os.getenv('PATH_INFO') or '')
             exit(0)
         else:
             # Login failed; set an error string to that effect
@@ -102,3 +102,4 @@ You are not authorized to view this resource."""
 </ul><input type="submit" value="Log in"></form>
 </div></body></html>"""
     exit(0)
+

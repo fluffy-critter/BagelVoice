@@ -13,3 +13,9 @@ def toUnix(time):
 
 def fromUnix(time):
     return datetime.datetime.utcfromtimestamp(time)
+
+def get_tz(user):
+    return pytz.timezone(user.timezone)
+
+def convert(time,tz):
+    return time.replace(tzinfo=pytz.UTC).astimezone(tz)

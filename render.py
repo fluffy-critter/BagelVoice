@@ -3,8 +3,10 @@
 import session
 from model import *
 from cStringIO import StringIO
+import timeutil
 
 user = session.get_user()
+tz = timeutil.get_tz(user)
 
 def renderEvent(event):
     out = StringIO()
@@ -19,15 +21,12 @@ def renderEvent(event):
             event.status
             )
 
-    print >>out, '<div class="when">%s</div>' % event.time.strftime('%x %X')
+    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime('%x %X')
 
     if event.call_duration:
         print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
-
     if event.message_body:
         print >>out, '<div class="text">%s</div>' % event.message_body
-    elif event.type:
-        print >>out, '<div class="type">%s</div> ' % event.type
 
     for attach in event.media:
         print >>out, '<div class="media">'
@@ -53,7 +52,7 @@ def renderEvent(event):
 
 def renderThread(thread, limit=None):
     out = StringIO()
-    print >>out, '<div id="thread-%s" class="thread%s">' % (thread.id, thread.unread and ' unread' or '')
+    print >>out, '<div id="thread-%d" class="thread%s">' % (thread.id, thread.unread and ' unread' or '')
 
     print >>out, '<div class="who">'
     inbox = thread.inbox
@@ -84,7 +83,9 @@ def renderThread(thread, limit=None):
     for event in thread.events.limit(limit):
         print >>out, renderEvent(event)
     if limit and thread.events.count() > limit:
-        print >>out, '<div class="more">&hellip;</div>'
+        print >>out, """
+<a class="more" href="?t=%d" onClick="expandThread(%d);return false">&hellip;</a>
+""" % (thread.id, thread.id)
     print >>out, '</div>'
 
     print >>out, '<div class="footer"></div>'
@@ -92,31 +93,30 @@ def renderThread(thread, limit=None):
     print >>out, '</div>'
     return out.getvalue()
 
-class NotAuthorized(Exception): pass
+def renderUserBox():
+    out = StringIO()
+    print >>out, '<div id="user">Welcome, %s!' % user.username
+    print >>out, '<ul class="actions"><li><a href="session.py/logout">log out</a></li></ul>'
+    return out.getvalue()
+
 class UnknownRequest(Exception): pass
 
 if __name__ == '__main__':
+    argv = session.get_argv()
+    if len(argv) < 3:
+        raise UnknownRequest
     try:
         form = session.get_form()
-        if form.getfirst('t'):
-            thread = Conversation.get(Conversation.id == int(form.getfirst('t')))
-            if thread.user.id != user.id: # TODO probably a safer way of doing this...
-                raise NotAuthorized
+        if argv[1] == 't':
+            thread = Conversation.get(Conversation.user == user and Conversation.id == int(argv[2]))
             buf = renderThread(thread)
-        elif form.getfirst('e'):
-            event = Event.get(Event.id == int(form.getfirst('e')))
-            if event.conversation.user.id != user.id:
-                raise NotAuthorized
+        elif argv[1] == 'e':
+            event = Event.get(Event.inbox.user == user and Event.id == int(argv[2]))
             buf = renderEvent(event)
         else:
             raise UnknownRequest
         print "Content-type: text/html;charset=utf-8\n\n"
         print buf
-    except NotAuthorized:
-        print """Status: 403 Forbidden
-Content-type: text/html
-
-You are not authorized to view this resource."""
     except UnknownRequest:
         print """Status: 400 Bad Request
 Content-type: text/html

@@ -34,8 +34,8 @@ def makeCallEvent(conversation, call, inbound):
                              conversation=conversation,
                              type='voice',
                              inbound=inbound,
-                             time=datetime.datetime.strptime(call.start_time, '%a, %d %b %Y %H:%M:%S +0000'),
-                             last_update=datetime.datetime.strptime(call.end_time or call.start_time, '%a, %d %b %Y %H:%M:%S +0000'))
+                             time=datetime.datetime.strptime(call.start_time or call.date_created, '%a, %d %b %Y %H:%M:%S +0000'),
+                             last_update=datetime.datetime.strptime(call.date_updated or call.end_time or call.start_time, '%a, %d %b %Y %H:%M:%S +0000'))
     event.call_duration=call.duration and int(call.duration)
     event.status = call.status
     event.save()
@@ -55,6 +55,7 @@ def makeMessageEvent(conversation, message, inbound):
                              time=datetime.datetime.strptime(message.date_created, '%a, %d %b %Y %H:%M:%S +0000'),
                              last_update=datetime.datetime.strptime(message.date_updated, '%a, %d %b %Y %H:%M:%S +0000'))
     event.status = message.status
+    event.message_body = message.body
     event.save()
     conversation.last_update = max(conversation.last_update, event.last_update)
     conversation.save()

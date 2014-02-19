@@ -91,4 +91,26 @@ def getEvent(form, sidField, inbound, type):
     if save:
         event.save()
 
+    # Attach any voicemail
+    if form.getfirst('RecordingSid'):
+        try:
+            attach = Attachment.get(Attachment.sid==form.getfirst('RecordingSid'))
+        except Attachment.DoesNotExist:
+            attach = Attachment.create(sid=form.getfirst('RecordingSid'),
+                                       url='%s.mp3' % form.getfirst('RecordingUrl'),
+                                       mime_type = 'audio/mpeg',
+                                       event=event)
+        save = False
+        if form.getfirst('RecordingDuration'):
+            attach = duration=int(form.getfirst('RecordingDuration'))
+            save = True
+        if applyAttribs(attach, form, {
+                'TranscriptionText' : 'transcription'
+                }):
+            save = True
+        if save:
+            attach.save()
+
     return event
+
+

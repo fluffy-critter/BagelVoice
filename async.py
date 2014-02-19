@@ -20,16 +20,21 @@ def lastitem():
     return timeutil.toUnix(latest) + 1
 
 def updatedThreads(since):
-    updThreads = user.threads.select().where(Conversation.last_update > timeutil.fromUnix(since))
-    return [{'id'   : t.id,
-             'html' : render.renderThread(t)
-             } for t in updThreads]
+    ref = timeutil.fromUnix(since)
+    updThreads = user.threads.where(Conversation.last_update > ref)
+    return [{'tid' : t.id,
+             'events' : [
+                {'eid'   : e.id,
+                 'html'  : render.renderEvent(e)
+                 } for e in t.events.where(Event.last_update > ref)]}
+            for t in updThreads]
+    return updates
 
 if __name__ == '__main__':
     form = session.get_form()
     response = { 'lastitem': lastitem() }
     if form.getfirst('since'):
-        response['updatedThreads'] = updatedThreads(int(form.getfirst('since')))
+        response['threads'] = updatedThreads(int(form.getfirst('since')))
 
     print "Content-type: application/json\n\n"
     print json.dumps(response)

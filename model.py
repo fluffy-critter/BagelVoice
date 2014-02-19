@@ -82,6 +82,8 @@ class Peer(BaseModel):
     display_name = CharField(null=True)
     phone_number = CharField()
     blocked = BooleanField(default=False)
+    send_to_voicemail = BooleanField(default=False)
+    transcribe_voicemail = BooleanField(default=False)
     from_city = CharField(null=True)
     from_state = CharField(null=True)
     from_zip = CharField(null=True)
@@ -154,6 +156,7 @@ class Attachment(BaseModel):
     url = CharField()
     mime_type = CharField()
     event = ForeignKeyField(Event, related_name='media')
+    transcription = CharField(null=True)
     msg_new = BooleanField(default=True)
 
 def create_tables():

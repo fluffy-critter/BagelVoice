@@ -20,7 +20,7 @@ argv = session.get_argv()
 
 event = control.getEvent(form=form,
                          sidField='MessageSid',
-                         inbound=(len(argv) > 1 and argv[1] == '/incoming'),
+                         inbound=(len(argv) > 1 and argv[1] == 'incoming'),
                          type="text")
 
 if event.conversation.peer.blocked:
@@ -28,7 +28,7 @@ if event.conversation.peer.blocked:
     event.status = 'rejected'
     event.save()
 
-for a in range(int(form.getfirst('NumMedia'))):
+for a in range(int(form.getfirst('NumMedia') or 0)):
     content_type = form.getfirst('MediaContentType%d' % a)
     content_url = form.getfirst('MediaUrl%d' % a)
     if content_url:

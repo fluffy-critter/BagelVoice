@@ -1,14 +1,14 @@
-function pollForUpdates(infoPath, firstTime) {
+function pollForUpdates(firstTime) {
     var lastUpdate = firstTime + 0;
     var count = 0;
     var oldTitle = document.title;
 
     function pollUpdate() {
 	$.ajax({
-	    url: infoPath + '?since=' + lastUpdate,
+	    url: 'async.py?since=' + lastUpdate,
 	    dataType: "json",
 	    success: function(json) {
-		count += json.updatedThreads.length;
+		count += json.threads.length;
 		lastUpdate = json.lastitem;
 		if (count) {
 		    document.title = oldTitle + ' (' + count + ')';
@@ -17,7 +17,7 @@ function pollForUpdates(infoPath, firstTime) {
 	});
     }
 
+    // TODO incremental backoff (up to, say, 5 minutes if no message received)
     setInterval(pollUpdate, 5000);
 }
 
-	
