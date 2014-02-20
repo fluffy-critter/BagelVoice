@@ -24,9 +24,15 @@ div#status div.error {
     border: solid black 1px;
     box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
     min-width: 20em;
-    width: 30%;
-    margin: 1ex;
-    float: left;
+    max-width: 30em;
+}
+
+@media screen and (min-device-width: 500px) {
+    .thread {
+	width: 30%;
+	margin: 1ex;
+	float: left;
+    }
 }
 
 .unread {

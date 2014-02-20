@@ -11,6 +11,7 @@ import timeutil
 from model import *
 
 user = session.get_user(doLogin=False)
+argv = session.get_argv()
 
 def lastitem():
     try:
@@ -31,10 +32,26 @@ def updatedThreads(since):
     return updates
 
 if __name__ == '__main__':
+    response = None
+
     form = session.get_form()
-    response = { 'lastitem': lastitem() }
-    if form.getfirst('since'):
-        response['threads'] = updatedThreads(form.getfirst('since')) or None
+    if len(argv) == 1:
+        response = { 'lastitem': lastitem() }
+        if form.getfirst('since'):
+            response['threads'] = updatedThreads(form.getfirst('since')) or None
+    elif argv[1] == 'mark':
+        if len(argv) != 3:
+            print "Status: 400 Bad Request\nContent-type: text/html\n\nMissing thread id"
+            exit(0)
+
+        count=0
+        for thread in user.threads.where(Conversation.id == int(argv[2])):
+            if thread.unread:
+                count += 1
+                thread.unread = False
+                thread.save()
+        response = count
 
     print "Content-type: application/json\n\n"
     print json.dumps(response)
+                                   

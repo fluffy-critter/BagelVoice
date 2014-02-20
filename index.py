@@ -10,7 +10,7 @@ import async
 user = session.get_user()
 form = session.get_form()
 
-print """Content-type: text/html
+print """Content-type: text/html;charset=utf-8
 
 <!DOCTYPE html>
 <html>

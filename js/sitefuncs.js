@@ -1,3 +1,18 @@
+function markRead(event) {
+    tid=event.delegateTarget.id.split('-')[1]
+    $.ajax({
+	url: 'async.py/mark/' + tid,
+	dataType: 'json',
+	success: function(json) {
+	    $(event.delegateTarget).removeClass('unread');
+	},
+	error: function(jq,st,th) {
+	    $('#status').addClass('error');
+	    $('#status').html('<div>Error: ' + st + ' ' + th + '</div>');
+	}
+    });
+}
+
 function pollForUpdates() {
     var lastUpdate;
     var count = 0;
@@ -38,6 +53,8 @@ function pollForUpdates() {
 		    dataType: 'html',
 		    success: function(html) {
 			inbox.prepend(html);
+			threadObj = inbox.children("#thread-" + obj.tid);
+			threadObj.on("click focus focusin", markRead);
 		    }
 		});
 	    }
@@ -50,10 +67,8 @@ function pollForUpdates() {
 	    url: 'async.py' + (lastUpdate ? '?since=' + lastUpdate : ''),
 	    dataType: "json",
 	    success: function(json) {
-		if (statusBox) {
-		    statusBox.removeClass('error');
-		    statusBox.html('');
-		}
+		statusBox.removeClass('error');
+		statusBox.html('');
 
 		if (json.threads) {
 		    console.log("notified of " + json.threads.length + " threads");
@@ -84,10 +99,8 @@ function pollForUpdates() {
 		setTimeout(pollUpdate, 20000);
 		errstr = st + ": " + th;
 		console.warn("Got error " + errstr);
-		if (statusBox) {
-		    statusBox.addClass('error');
-		    statusBox.html('<div>' + errstr + '</div>');
-		}
+		statusBox.addClass('error');
+		statusBox.html('<div>' + errstr + '</div>');
 	    }
 	});
     }
@@ -95,8 +108,7 @@ function pollForUpdates() {
     setTimeout(pollUpdate, retry);
 }
 
-function markUnread(target) {
-    
-}
-
-$(document).ready(pollForUpdates)
+$(document).ready(function() {
+    pollForUpdates();
+    $(".thread").on("click focus focusin", markRead);
+})
