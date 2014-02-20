@@ -17,10 +17,10 @@ def lastitem():
         latest = user.threads.order_by(Conversation.last_update.desc()).get().last_update
     except Conversation.DoesNotExist:
         latest = timeutil.getTime()
-    return timeutil.toUnix(latest) + 1
+    return timeutil.toStamp(latest)
 
 def updatedThreads(since):
-    ref = timeutil.fromUnix(since)
+    ref = timeutil.fromStamp(since)
     updThreads = user.threads.where(Conversation.last_update > ref)
     return [{'tid' : t.id,
              'events' : [
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     form = session.get_form()
     response = { 'lastitem': lastitem() }
     if form.getfirst('since'):
-        response['threads'] = updatedThreads(int(form.getfirst('since')))
+        response['threads'] = updatedThreads(form.getfirst('since')) or None
 
     print "Content-type: application/json\n\n"
     print json.dumps(response)

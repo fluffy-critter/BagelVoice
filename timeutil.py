@@ -4,15 +4,20 @@ import datetime
 import calendar
 import pytz
 
+STAMPFORMAT='%Y%m%d%H%M%S'
+
 # Get the current timestamp
 def getTime():
-    return datetime.datetime.utcnow()
+    return datetime.datetime.utcnow().replace(microsecond=0)
 
-def toUnix(time):
-    return calendar.timegm(time.utctimetuple())
+def toStamp(time):
+    return time.strftime(STAMPFORMAT)
 
-def fromUnix(time):
-    return datetime.datetime.utcfromtimestamp(time)
+def fromStamp(time):
+    try:
+        return datetime.datetime.strptime(time, STAMPFORMAT).replace(microsecond=999999)
+    except:
+        return getTime()
 
 def get_tz(user):
     return pytz.timezone(user.timezone)

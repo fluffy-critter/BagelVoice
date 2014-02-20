@@ -10,10 +10,9 @@ tz = timeutil.get_tz(user)
 
 def renderEvent(event):
     out = StringIO()
-    if event.inbound:
-        print >>out, '<div class="event inbound">'
-    else:
-        print >>out, '<div class="event outbound">'
+    print >>out, '<div class="event %s" id="event-%d">' % (
+        event.inbound and 'inbound' or 'outbound',
+        event.id)
 
     if event.status:
         print >>out, '<div class="status stat-%s">%s</div>' % (
@@ -68,14 +67,14 @@ def renderThread(thread, limit=None):
     if locStr:
         print >>out, '<span class="location">%s</span>' % locStr
     print >>out, '<span class="inbox">%s (%s)</span>' % (inbox.phone_number, inbox.name)
+    print >>out, '<div class="footer"></div>'
     print >>out, '</div>'
 
     print >>out, '''<div class="respond">
-<form method="POST" action="sendmsg.py">
+<form method="POST" action="sendmsg.py" class="sms">
 <input type="hidden" name="From" value="%s">
 <input type="hidden" name="To" value="%s">
-<input type="text" size="80" name="Body">
-<input type="submit" value="Send">
+<input type="text" class="sms" name="Body" maxlength="1600" placeholder="Respond by text message">
 </form>
 </div>''' % (inbox.phone_number, peer.phone_number)
 

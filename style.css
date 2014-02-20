@@ -6,10 +6,27 @@ h1, h2, h3 {
     font-family: "Gill Sans", "Helvetica", "Sans Serif"
 }
 
+div#status { 
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+div#status div {
+    background-color: #fcc;
+    border: solid black 1px;
+    padding: 1ex;
+}
+div#status div.error {
+    background-color: #fcc;
+}
+
 .thread {
     border: solid black 1px;
-    margin-bottom: 1ex;
     box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+    min-width: 20em;
+    width: 30%;
+    margin: 1ex;
+    float: left;
 }
 
 .unread {
@@ -24,6 +41,16 @@ h1, h2, h3 {
 }
 
 .thread.unread .who { background: #fcc; }
+
+div.respond {
+    display: block;
+    width: auto;
+    padding: 1px 1ex;
+}
+
+input.sms {
+    width: 100%;
+}
 
 .thread .who .phone {
     font-weight: bold;
@@ -42,6 +69,7 @@ h1, h2, h3 {
 .thread .who .inbox {
     font-weight: bold;
     float: right;
+    margin-left: 1ex;
 }
 
 .thread .status {

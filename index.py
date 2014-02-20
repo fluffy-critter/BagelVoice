@@ -25,7 +25,9 @@ print """Content-type: text/html
 
 <h1>VoiceBox</h1>
 
-<div class="threads">
+<div id="status"></div>
+
+<div id="inbox">
 """
 
 if form.getfirst('t'):
@@ -44,7 +46,6 @@ else:
         print render.renderThread(thread, limit)
 print '</div>'
 
-print '<script>pollForUpdates(%d);</script>' % (async.lastitem())
 print '</body></html>'
 
     
