@@ -8,9 +8,10 @@ import json
 import render
 import calendar
 import timeutil
+import sys
 from model import *
 
-user = session.get_user(doLogin=False)
+user = session.get_user()
 argv = session.get_argv()
 
 def lastitem():
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     elif argv[1] == 'mark':
         if len(argv) != 3:
             print "Status: 400 Bad Request\nContent-type: text/html\n\nMissing thread id"
-            exit(0)
+            sys.exit()
 
         count=0
         for thread in user.threads.where(Conversation.id == int(argv[2])):

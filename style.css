@@ -106,11 +106,17 @@ input.sms {
 
 .thread a.more {
     text-align: center;
-    font-style: italic;
     border-top: solid #777 1px;
     background: #eee;
     display: block;
     clear: both;
+    text-decoration: none;
+    font-weight: bold;
+    text-shadow: 0px 0px 5px #fff;
+}
+
+.thread a.more:hover {
+    text-shadow: 0px 0px 3px #f00;
 }
 
 .thread .inbound .text {

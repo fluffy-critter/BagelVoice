@@ -6,23 +6,34 @@ import model
 import timeutil
 from model import Event
 from twilio.rest import TwilioRestClient
+import twilio
 import config
+import sys
 
 user = session.get_user()
 form = session.get_form()
-inbox = control.getInbox(form, user, 'From')
 
+for check in ['Body', 'From', 'To']:
+    if not form.getfirst(check):
+        print "Status: 400 Bad Requeset\nContent-type: text/html\n\nMissing parameter: %s" % check
+        sys.exit()
+
+inbox = control.getInbox(form, user, 'From')
 client = TwilioRestClient(user.twilio_sid, user.twilio_auth_token)
 
 with model.transaction():
     body = form.getfirst('Body')
-    
-    message = client.messages.create(
-        body=body,
-        from_=form.getfirst('From'),
-        to=form.getfirst('To'),
-        status_callback=config.configuration['root-url'] + '/sms.py/outgoing'
-    )
+
+    try:
+        message = client.messages.create(
+            body=body,
+            from_=form.getfirst('From'),
+            to=form.getfirst('To'),
+            status_callback=config.configuration['root-url'] + '/sms.py/outgoing'
+            )
+    except twilio.TwilioRestException as e:
+        print "Status: 400 Bad Request\nContent-type: text/html\n\n%s" % str(e)
+        sys.exit()
 
     now = timeutil.getTime()
     try:

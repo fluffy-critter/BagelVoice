@@ -1,14 +1,10 @@
 #!/usr/bin/python
 
-import cgi
 import session
+user = session.get_user()
+
 from model import *
 import render
-import config
-import async
-
-user = session.get_user()
-form = session.get_form()
 
 print """Content-type: text/html;charset=utf-8
 
@@ -30,10 +26,11 @@ print """Content-type: text/html;charset=utf-8
 <div id="inbox">
 """
 
+form = session.get_form()
 if form.getfirst('t'):
     thread = Conversation.get(Conversation.user == user and Conversation.id == int(form.getfirst('t')))
     print '<h2>Viewing thread</h2>'
-    print '<a class="back" href="?">Back to inbox</a>'
+    print '<div><a class="return" href="?">Back to inbox</a></div>'
     print render.renderThread(thread)
 else:
     count=0

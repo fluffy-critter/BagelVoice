@@ -7,6 +7,7 @@ import os
 import session
 import datetime
 import pytz
+import sys
 
 form = session.get_form()
 
@@ -31,7 +32,7 @@ event = control.getEvent(form=form,
                          type="voice")
 if state == 'transcribed':
     # The rest of this handler is pointless
-    exit(0)
+    sys.exit()
 
 responseBody = None
     

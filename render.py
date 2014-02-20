@@ -4,6 +4,7 @@ import session
 from model import *
 from cStringIO import StringIO
 import timeutil
+import sys
 
 user = session.get_user()
 tz = timeutil.get_tz(user)
@@ -82,9 +83,7 @@ def renderThread(thread, limit=None):
     for event in thread.events.limit(limit):
         print >>out, renderEvent(event)
     if limit and thread.events.count() > limit:
-        print >>out, """
-<a class="more" href="?t=%d" onClick="expandThread(%d);return false">&hellip;</a>
-""" % (thread.id, thread.id)
+        print >>out, '<a class="more" href="?t=%d">&hellip;</a>' % thread.id
     print >>out, '</div>'
 
     print >>out, '<div class="footer"></div>'
@@ -98,12 +97,15 @@ def renderUserBox():
     print >>out, '<ul class="actions"><li><a href="session.py/logout">log out</a></li></ul>'
     return out.getvalue()
 
-class UnknownRequest(Exception): pass
-
 if __name__ == '__main__':
     argv = session.get_argv()
     if len(argv) < 3:
-        raise UnknownRequest
+        print """Status: 400 Bad Request
+Content-type: text/html
+
+The request was nonsensical."""
+        sys.exit()
+
     try:
         form = session.get_form()
         if argv[1] == 't':
@@ -116,11 +118,6 @@ if __name__ == '__main__':
             raise UnknownRequest
         print "Content-type: text/html;charset=utf-8\n\n"
         print buf
-    except UnknownRequest:
-        print """Status: 400 Bad Request
-Content-type: text/html
-
-The request was nonsensical."""
     except (Conversation.DoesNotExist,
             Event.DoesNotExist):
         print """Status: 404 Not Found

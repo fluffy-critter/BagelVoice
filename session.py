@@ -7,6 +7,7 @@ import timeutil
 import logging
 import bcrypt
 import uuid
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ def get_argv():
         argv.extend(path.split('/')[1:])
     return argv
 
-def get_user(doLogin=True):
+def get_user():
     global user
     if user:
         return user
@@ -67,18 +68,18 @@ def get_user(doLogin=True):
             cookie['session'] = sess.session_id
             cookie['session']['expires'] = 86400*14
             print cookie
-            print "Content-type: text/html\nLocation: %s%s\n\nRedirecting..." % (os.getenv('SCRIPT_NAME'), os.getenv('PATH_INFO') or '')
-            exit(0)
+            print 'Hello: I am fine'
+            print '''\
+Content-type: text/html
+Location: %s://%s%s
+
+Redirecting...''' % (os.getenv('HTTPS') == 'on' and 'https' or 'http',
+                     os.getenv('SERVER_NAME'),
+                     os.getenv('REQUEST_URI'))
+            sys.exit()
         else:
             # Login failed; set an error string to that effect
             login_error_string = "Username/password did not match our records"
-
-    if not doLogin:
-        print """Status: 403 Forbidden
-Content-type: text/html
-
-You are not authorized to view this resource."""
-        exit(0)
 
     print """Content-type: text/html
 
@@ -101,5 +102,5 @@ You are not authorized to view this resource."""
 <input type="password" name="password"></li>
 </ul><input type="submit" value="Log in"></form>
 </div></body></html>"""
-    exit(0)
+    sys.exit()
 
