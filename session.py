@@ -11,29 +11,42 @@ import sys
 
 logger = logging.getLogger(__name__)
 
-form = cgi.FieldStorage()
+_form = cgi.FieldStorage()
 ipAddr = os.getenv('REMOTE_ADDR')
 
-user = None
+_user = None
 
-def get_form():
+def form():
     # Gets the parsed CGI form values. MUST be retrieved from here.
-    global form
-    return form
+    global _form
+    return _form
 
 # Get the page action; argv[0] is a server-relative path to the script handler, argv[1..n] is the verb
 # i.e. /larry/foo.py/handleBlah/more -> ['/larry/foo.py', 'handleBlah', 'more']
-def get_argv():
+def argv():
     argv=[os.getenv('SCRIPT_NAME')]
     path=os.getenv('PATH_INFO')
     if path:
         argv.extend(path.split('/')[1:])
     return argv
 
-def get_user():
-    global user
-    if user:
-        return user
+def request_url():
+    # try to reconstruct our URL from what we're given, because a
+    # Location header has to be absolute to prevent Apache from
+    # short-circuiting incorrectly
+    https = (os.getenv('HTTPS') == 'on')
+    expectedPort = https and '443' or '80'
+    actualPort = os.getenv('SERVER_PORT')
+    return '%s://%s%s%s' % (https and 'https' or 'http',
+                            os.getenv('SERVER_NAME'),
+                            (expectedPort != actualPort) and ':%s'%actualPort or '',
+                            os.getenv('REQUEST_URI'))
+
+
+def user():
+    global _user
+    if _user:
+        return _user
 
     # Get the currently logged-in user, or presents a login form and
     # exits if there is none
@@ -51,8 +64,8 @@ def get_user():
             sess.last_seen = timeutil.getTime()
             sess.last_ip = ipAddr
             sess.save()
-            user = sess.user
-            return user
+            _user = sess.user
+            return _user
         except WebSession.DoesNotExist:
             logger.info('Got invalid session id "%s"', session_cookie.value)
 
@@ -68,14 +81,11 @@ def get_user():
             cookie['session'] = sess.session_id
             cookie['session']['expires'] = 86400*14
             print cookie
-            print 'Hello: I am fine'
             print '''\
 Content-type: text/html
-Location: %s://%s%s
+Location: %s
 
-Redirecting...''' % (os.getenv('HTTPS') == 'on' and 'https' or 'http',
-                     os.getenv('SERVER_NAME'),
-                     os.getenv('REQUEST_URI'))
+Redirecting...''' % request_url()
             sys.exit()
         else:
             # Login failed; set an error string to that effect

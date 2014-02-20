@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import session
-user = session.get_user()
+user = session.user()
 
 from model import *
 import render
@@ -26,7 +26,7 @@ print """Content-type: text/html;charset=utf-8
 <div id="inbox">
 """
 
-form = session.get_form()
+form = session.form()
 if form.getfirst('t'):
     thread = Conversation.get(Conversation.user == user and Conversation.id == int(form.getfirst('t')))
     print '<h2>Viewing thread</h2>'

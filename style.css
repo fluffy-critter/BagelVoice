@@ -25,6 +25,7 @@ div#status div.error {
     box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
     min-width: 20em;
     max-width: 30em;
+    position: relative;
 }
 
 @media screen and (min-device-width: 500px) {
@@ -79,19 +80,21 @@ input.sms {
 }
 
 .thread .status {
-    float: right;
-    background: white;
-    margin: 2px;
+    display: block;
+    position: absolute;
+    right: 0;
+    background: #ccc;
+    margin: 0 0 4px 4px;
+    padding: 0 1ex;
     font-style: italic;
-    font-weight: bold;
-    font-size: small;
+    font-size: x-small;
 }
 
 .thread .when {
-    float: left;
     background: #cfc;
-    margin: 0px 1ex 1ex 0px;
     border: #070 1px;
+    float: left;
+    margin: 0px 1ex 1ex 0px;
     border-style: none solid solid none;
 }
 

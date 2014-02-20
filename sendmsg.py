@@ -10,8 +10,8 @@ import twilio
 import config
 import sys
 
-user = session.get_user()
-form = session.get_form()
+user = session.user()
+form = session.form()
 
 for check in ['Body', 'From', 'To']:
     if not form.getfirst(check):

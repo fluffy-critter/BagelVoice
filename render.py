@@ -6,7 +6,7 @@ from cStringIO import StringIO
 import timeutil
 import sys
 
-user = session.get_user()
+user = session.user()
 tz = timeutil.get_tz(user)
 
 def renderEvent(event):
@@ -98,7 +98,7 @@ def renderUserBox():
     return out.getvalue()
 
 if __name__ == '__main__':
-    argv = session.get_argv()
+    argv = session.argv()
     if len(argv) < 3:
         print """Status: 400 Bad Request
 Content-type: text/html
@@ -107,7 +107,7 @@ The request was nonsensical."""
         sys.exit()
 
     try:
-        form = session.get_form()
+        form = session.form()
         if argv[1] == 't':
             thread = Conversation.get(Conversation.user == user and Conversation.id == int(argv[2]))
             buf = renderThread(thread)

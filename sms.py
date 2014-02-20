@@ -9,14 +9,14 @@ import session
 
 #TODO: switch to twilio.twiml
 
-form = session.get_form()
+form = session.form()
 
 print """\
 Content-type: text/xml;charset=utf-8
 
 """
 
-argv = session.get_argv()
+argv = session.argv()
 
 event = control.getEvent(form=form,
                          sidField='MessageSid',

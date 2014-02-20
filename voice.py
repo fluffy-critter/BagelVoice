@@ -9,7 +9,7 @@ import datetime
 import pytz
 import sys
 
-form = session.get_form()
+form = session.form()
 
 print """\
 Content-type: text/xml;charset=utf-8
@@ -18,7 +18,7 @@ Content-type: text/xml;charset=utf-8
 
 responseBody = None
 
-argv = session.get_argv()
+argv = session.argv()
 state = len(argv) > 1 and argv[1]
 
 if not form.getfirst('Direction') or form.getfirst('Direction') == 'inbound':

@@ -11,8 +11,8 @@ import timeutil
 import sys
 from model import *
 
-user = session.get_user()
-argv = session.get_argv()
+user = session.user()
+argv = session.argv()
 
 def lastitem():
     try:
@@ -35,7 +35,7 @@ def updatedThreads(since):
 if __name__ == '__main__':
     response = None
 
-    form = session.get_form()
+    form = session.form()
     if len(argv) == 1:
         response = { 'lastitem': lastitem() }
         if form.getfirst('since'):
