@@ -70,9 +70,9 @@ def user():
             logger.info('Got invalid session id "%s"', session_cookie.value)
 
     login_error_string = None
-    if form.getfirst('username') and form.getfirst('password'):
-        user = User.get(username=form.getfirst('username'))
-        if bcrypt.hashpw(form.getfirst('password'), user.password) == user.password:
+    if _form.getfirst('username') and _form.getfirst('password'):
+        user = User.get(username=_form.getfirst('username'))
+        if bcrypt.hashpw(_form.getfirst('password'), user.password) == user.password:
             # Login succeeded
             sess = WebSession.create(session_id=uuid.uuid4().hex,
                                      user=user,
@@ -107,7 +107,7 @@ Redirecting...''' % request_url()
         print '<div class="explain">You must log in to continue.</div>'
     print '<form method="POST" action="%s"><ul>' % os.environ.get('REQUEST_URI')
     print '<li><label for="username">Username:</label>'
-    print '<input type="text" name="username" value="%s"></li>' % (form.getfirst('username') or '')
+    print '<input type="text" name="username" value="%s"></li>' % (_form.getfirst('username') or '')
     print """<li><label for="password">Password:</label>
 <input type="password" name="password"></li>
 </ul><input type="submit" value="Log in"></form>

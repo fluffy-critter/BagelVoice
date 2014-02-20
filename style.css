@@ -80,7 +80,7 @@ input.sms {
 }
 
 .thread .status {
-    display: block;
+    display: none;
     position: absolute;
     right: 0;
     background: #ccc;
@@ -88,6 +88,10 @@ input.sms {
     padding: 0 1ex;
     font-style: italic;
     font-size: x-small;
+}
+.thread .status.stat-queued {
+    display: block;
+    background: #c7f;
 }
 
 .thread .when {
