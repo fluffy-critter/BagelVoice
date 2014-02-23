@@ -1,5 +1,11 @@
 from model import *
 import timeutil
+from config import configuration
+import logging
+import peewee
+import datetime
+
+logger=logging.getLogger(__name__) 
 
 def applyAttribs(obj, form, keyMapping):
     needsSave = False
@@ -36,11 +42,13 @@ def getPeer(form, user, whoField=None, whoValue=None):
     return peer
 
 def getConversation(form, inbox, peer):
-    # TODO create a new conversation if the old one's too old
+    splitTime = timeutil.getTime() - config.configuration['thread-split-age'];
     try:
         conv = Conversation.get(Conversation.inbox == inbox
-                                and Conversation.peer == peer)
+                                and Conversation.peer == peer
+                                and Conversation.last_update > splitTime)
     except Conversation.DoesNotExist:
+        logger.info("Creating new conversation for %s -> %s", inbox.phone_number, peer.phone_number)
         conv = Conversation.create(
             user = inbox.user,
             inbox = inbox,
@@ -113,4 +121,21 @@ def getEvent(form, sidField, inbound, type):
 
     return event
 
-
+def notify(event, notification):
+    schema=notification.uri.split(':')[0]
+    mainConfig=configuration['notify']
+    subConfig=mainConfig[schema] or mainConfig
+    try:
+        NotificationQueue.create(
+            time=datetime.datetime.now(),
+            event=event,
+            notification=notification,
+            retries_left = int(subConfig.get('max-retries') or mainConfig.get('max-retries') or 0),
+            retry_wait = int(subConfig.get('retry-interval') or mainConfig.get('retry-interval') or 1000)
+            )
+    except peewee.IntegrityError:
+        logger.warning("Already have a pending notification for %s from %s:%d (%s:%d)",
+                       notification.uri,
+                       event.type, event.id,
+                       event.conversation.peer.phone_number,
+                       event.conversation.id)

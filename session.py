@@ -43,7 +43,7 @@ def request_url():
                             os.getenv('REQUEST_URI'))
 
 
-def user():
+def user(doLogin=True):
     global _user
     if _user:
         return _user
@@ -67,7 +67,7 @@ def user():
             _user = sess.user
             return _user
         except WebSession.DoesNotExist:
-            logger.info('Got invalid session id "%s"', session_cookie.value)
+            logger.info('Got invalid session id "%s" for request %s', session_cookie.value, os.getenv('REQUEST_URI'))
 
     login_error_string = None
     if _form.getfirst('username') and _form.getfirst('password'):
@@ -90,6 +90,10 @@ Redirecting...''' % request_url()
         else:
             # Login failed; set an error string to that effect
             login_error_string = "Username/password did not match our records"
+
+    if (doLogin == False):
+        print """Status: 401 unauthorized\nContent-type: text/plain\n\nYou gotta be logged in for this to work"""
+        sys.exit()
 
     print """Content-type: text/html
 

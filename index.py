@@ -34,7 +34,7 @@ if form.getfirst('t'):
     print render.renderThread(thread)
 else:
     count=0
-    for thread in user.threads:
+    for thread in user.threads.limit(20):
         if count == 0: limit=10
         elif count < 5: limit=5
         elif count < 10: limit = 3

@@ -6,27 +6,19 @@ import cgi
 import logging
 import os
 import session
+import sys
+import timeutil
 
-#TODO: switch to twilio.twiml
+logger=logging.getLogger(__name__)
 
 form = session.form()
-
-print """\
-Content-type: text/xml;charset=utf-8
-
-"""
-
 argv = session.argv()
 
+user = control.getUser(form)
 event = control.getEvent(form=form,
                          sidField='MessageSid',
                          inbound=(len(argv) > 1 and argv[1] == 'incoming'),
                          type="text")
-
-if event.conversation.peer.blocked:
-    # TODO: make this do something useful
-    event.status = 'rejected'
-    event.save()
 
 for a in range(int(form.getfirst('NumMedia') or 0)):
     content_type = form.getfirst('MediaContentType%d' % a)
@@ -37,6 +29,20 @@ for a in range(int(form.getfirst('NumMedia') or 0)):
                                   mime_type=content_type,
                                   event=event)
 
-print '''
+if event.conversation.peer.blocked:
+    # TODO: make this do something useful
+    event.status = 'rejected'
+    event.save()
+    sys.exit()
+
+if argv[1] == 'incoming':
+    for n in user.notifications.where(Notification.notify_sms == True):
+        try:
+            control.notify(event, n)
+        except:
+            logger.exception("Got error trying to notify on SMS")
+
+print """Content-type: text/xml;charset=utf-8
+
 <Response></Response>
-'''
+"""

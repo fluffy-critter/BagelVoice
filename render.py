@@ -5,6 +5,8 @@ from model import *
 from cStringIO import StringIO
 import timeutil
 import sys
+import os
+import urllib
 
 user = session.user()
 tz = timeutil.get_tz(user)
@@ -33,7 +35,7 @@ def renderEvent(event):
         attachBody = None
         mimeclass = attach.mime_type.split('/')[0]
         if mimeclass == 'audio':
-            attachBody = '<audio controls="controls"><source src="%s" type="%s"></audio>' % (
+            attachBody = '<audio controls="controls" preload="none"><source src="%s" type="%s"></audio>' % (
                 attach.url, attach.mime_type)
         elif mimeclass == 'image':
             attachBody = '<img src="%s">' % attach.url
@@ -75,9 +77,10 @@ def renderThread(thread, limit=None):
 <form method="POST" action="sendmsg.py" class="sms">
 <input type="hidden" name="From" value="%s">
 <input type="hidden" name="To" value="%s">
+<input type="hidden" name="redir" value="%s">
 <input type="text" class="sms" name="Body" maxlength="1600" placeholder="Respond by text message">
 </form>
-</div>''' % (inbox.phone_number, peer.phone_number)
+</div>''' % (inbox.phone_number, peer.phone_number, urllib.quote(os.getenv('REQUEST_URI')))
 
     print >>out, '<div class="events">'
     for event in thread.events.limit(limit):

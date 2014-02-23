@@ -1,0 +1,89 @@
+#!/usr/bin/python
+import model
+import bcrypt
+from model import *
+import datetime
+import control
+from twilio.rest import TwilioRestClient
+import backfill
+
+print '''Content-type: text/html
+
+'''
+model.create_tables()
+
+def makeUser(username, password, email, sid, auth_token):
+    try:
+        return User.get(User.username == username)
+    except User.DoesNotExist:
+        return User.create(username=username,
+                           password=bcrypt.hashpw(password, bcrypt.gensalt()),
+                           email=email,
+                           twilio_sid=sid,
+                           twilio_auth_token=auth_token)
+
+user = makeUser('username', 'password', 'email@example.com', 'twilio sid', 'access key')
+
+def makeInbox(user, name, number, greeting='https://vbx.e-snail.us/vmgreet/answering-machine.mp3'):
+    try:
+        return Inbox.get(Inbox.user==user, Inbox.phone_number==number)
+    except Inbox.DoesNotExist:
+        return Inbox.create(user=user, name=name, phone_number=number, voicemail_greeting=greeting)
+
+tnum = makeInbox(user, 'My phone number', '+15558675309')
+
+def makeRoute(inbox, name, dest_type, dest_addr, max_ring_time=None):
+    try:
+        return CallRoute.get(CallRoute.dest_type == dest_type and CallRoute.dest_addr == dest_addr)
+    except CallRoute.DoesNotExist:
+        return CallRoute.create(name=name, inbox=inbox, dest_type=dest_type, dest_addr=dest_addr, max_ring_time=max_ring_time)
+
+def makeRule(route, start_time, end_time, active_days):
+    try:
+        return CallRouteRule.get(CallRouteRule.route == route
+                                 and CallRouteRule.start_time == start_time
+                                 and CallRouteRule.end_time == end_time
+                                 and CallRouteRule.active_days == active_days)
+    except CallRouteRule.DoesNotExist:
+        return CallRouteRule.create(route=route, start_time=start_time, end_time=end_time, active_days=active_days)
+
+# Make a forwarding rule to go to work from 9 to 5 PM on weekdays
+work=makeRoute(tnum, 'Work phone', 'Number', '+18005551212', 14)
+makeRule(work, datetime.time(9,00), datetime.time(17,00), 'MTWRF')
+
+makeRoute(tnum, 'Cellphone', 'Number', '+15552223333')
+makeRoute(tnum, 'SIP provider', 'Sip', 'sip:foo@example.com')
+
+client = backfill.getClient(user)
+for call in client.calls.list():
+    if call.direction == 'inbound':
+        inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == call.to)
+        peerNumber = call.from_
+    else:
+        # don't know how to handle this (yet) but we also don't do outgoing (yet)
+        continue
+
+    peer = backfill.makePeer(user, peerNumber)
+    conversation = backfill.makeConversation(inbox, peer)
+    event = backfill.makeCallEvent(conversation, call, call.direction == 'inbound')
+
+for message in client.messages.list():
+    if message.direction == 'inbound':
+        inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == message.to)
+        peerNumber = message.from_
+    else:
+        inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == message.from_)
+        peerNumber = message.to
+
+    peer = backfill.makePeer(user, peerNumber)
+    conversation = backfill.makeConversation(inbox, peer)
+    event = backfill.makeMessageEvent(conversation, message, message.direction == 'inbound')
+    # TODO MMS? (need to figure out how those are returned in JSON)
+
+for vm in client.recordings.list():
+    try:
+        call = Event.get(Event.sid == vm.call_sid)
+    except Event.DoesNotExist:
+        # We don't have a call for this message
+        continue
+    attach = backfill.makeVoicemail(call, vm)

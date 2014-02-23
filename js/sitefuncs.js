@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    var count = 0;
+    var oldTitle = document.title;
 
     function clickMore(event) {
 	event.stopPropagation();
@@ -12,6 +14,8 @@ $(document).ready(function() {
 	    dataType: 'json',
 	    success: function(json) {
 		$(event.delegateTarget).removeClass('unread');
+		count = 0;
+		document.title = oldTitle;
 	    },
 	    error: function(jq,st,th) {
 		$('#status').addClass('error');
@@ -22,8 +26,6 @@ $(document).ready(function() {
 
     function pollForUpdates() {
 	var lastUpdate;
-	var count = 0;
-	var oldTitle = document.title;
 	var retry = 5000;
 
 	statusBox = $("#status");
@@ -99,7 +101,7 @@ $(document).ready(function() {
 		    console.log("next update check = " + retry);
 		    
 		    if (lastUpdate && count) {
-			document.title = oldTitle + ' (' + count + ')';
+			document.title = '(' + count + ') ' + oldTitle;
 		    }
 		    lastUpdate = json.lastitem;
 		    setTimeout(pollUpdate, retry);

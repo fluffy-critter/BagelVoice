@@ -9,6 +9,7 @@ from twilio.rest import TwilioRestClient
 import twilio
 import config
 import sys
+import urllib
 
 user = session.user()
 form = session.form()
@@ -63,6 +64,6 @@ with model.transaction():
         conversation.save()
 
 print '''Content-type: text/html
-Location: .
+Location: %s%s
 
-Redirecting to the app'''
+Redirecting to the app''' % (config.configuration['root-url'], urllib.unquote(form.getfirst('redir') or '.'))

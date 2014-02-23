@@ -1,4 +1,6 @@
 from peewee import *
+import config
+
 
 database = SqliteDatabase('db/voicebox.db')
 database.connect()
@@ -28,11 +30,13 @@ class User(BaseModel):
 class Notification(BaseModel):
     user = ForeignKeyField(User, related_name='notifications')
     # notification URI, e.g. mailto:foo@example.com, xmpp:foo@example.com, or aim:aolsystemmsg
-    uri = CharField()
+    uri = CharField(unique=True)
     # Notify on an incoming SMS
     notify_sms = BooleanField(default=False)
     # Notify when a call is received
-    notify_call = BooleanField(default=False)
+    notify_call_incoming = BooleanField(default=False)
+    # Notify when a call is missed
+    notify_call_missed = BooleanField(default=False)
     # Notify when a voicemail is received
     notify_voicemail = BooleanField(default=True)
 
@@ -128,24 +132,30 @@ class Event(BaseModel):
 # Queue of pending notifications
 # while n=NotificationQueue.get() and n.time < now:
 #   get event, notification
-#   n.delete()
 #   try:
 #     handle notification
+#     n.delete()
 #   except:
-#     NotificationQueue.create(
+#     if n.retries_left > 0:
+#       n.time += datetime.timeinterval(milliseconds=n.retry_wait)
+#       n.retry_wait += n.retry_wait
+#       n.retries_left--
+#       n.save()
 class NotificationQueue(BaseModel):
-    # when to next try the notification
+    # when to next try the notification (NOTE: uses local datetime.now(), NOT the normalized timeutil time)
     time = DateTimeField(index=True)
+    # if the event has been handled already
+    handled = BooleanField(default=False)
     # the event to notify them about
     event = ForeignKeyField(Event)
     # the notification method
-    notification = ForeignKeyField(Notification)
+    notification = ForeignKeyField(Notification, related_name='pending')
     # How many retries are left
     retries_left = IntegerField()
-    # How long to wait before the next retry (exponential backoff)
+    # How long to wait before the next retry (exponential backoff), in milliseconds
     retry_wait = IntegerField()
     class Meta:
-        order_by = ('time',)
+        order_by = ('handled','time')
         indexes = (
             (('event', 'notification'), True),
             )
@@ -170,6 +180,7 @@ def create_tables():
         Peer,
         Conversation,
         Event,
+        NotificationQueue,
         Attachment
         ]:
         table.create_table(fail_silently=True)

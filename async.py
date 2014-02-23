@@ -2,6 +2,8 @@
 # Routines and request handler for getting information about the inbox
 
 import session
+session.user(doLogin=False)
+
 import os
 import control
 import json
@@ -10,6 +12,7 @@ import calendar
 import timeutil
 import sys
 from model import *
+import config
 
 user = session.user()
 argv = session.argv()

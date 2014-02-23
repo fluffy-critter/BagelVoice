@@ -71,3 +71,10 @@ def makeVoicemail(call, vm):
                                  url=vm.uri + '.mp3',
                                  mime_type='audio/mpeg',
                                  msg_new=False)
+
+def makeNotificationType(user, uri):
+    try:
+        return Notification.get(Notification.user == user and Notification.uri == uri)
+    except Notification.DoesNotExist:
+        return Notification.create(user=user, uri=uri)
+    
