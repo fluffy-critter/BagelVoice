@@ -2,7 +2,7 @@ from peewee import *
 import config
 
 
-database = SqliteDatabase('db/voicebox.db')
+database = SqliteDatabase('db/bagel.db')
 database.connect()
 
 # Run inside a transaction

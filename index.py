@@ -11,7 +11,7 @@ print """Content-type: text/html;charset=utf-8
 <!DOCTYPE html>
 <html>
 <head>
-<title>VoiceBox</title>
+<title>Bagel Voice</title>
 <link rel="stylesheet" href="style.css">
 
 <script src="js/jquery.min.js"></script>
@@ -19,7 +19,7 @@ print """Content-type: text/html;charset=utf-8
 
 </head><body class="dashboard">
 
-<h1>VoiceBox</h1>
+<h1>Bagel Voice</h1>
 
 <div id="status"></div>
 

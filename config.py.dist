@@ -1,10 +1,35 @@
-# Voicebox configuration file
+import logging
+import datetime
+
+# Bagel Voice configuration file
 # Copy this to config.py and edit the values as appropriate
 
 configuration = {
-    # Filename format for the logger; format codes are as in strftime
-    'log-pathspec': 'logs/voicebox.log.%Y%m%d',
+    # Root URL of the site install
+    'root-url': 'https://example.com/voice/',
+    # Directory to store the logs in
+    'logdir': '/path/to/site/logs',
+    
+    # thread options
+    'thread-split-age': datetime.timedelta(days=1),
 
-    # URL to the installation root
-    'root-url': 'https://example.com/voicebox'
+    # notificaiton configurations
+    'notify': {
+        'max-retries': 5,
+        'retry-interval': 2000,
+        'mailto': {
+            'from': 'Bagel Voice <vbx@example.com>',
+        },
+        'xmpp': {
+            'jid': 'vbx@example.com',
+            'server': 'jabber.example.com',
+            'password': 'password goes here'
+        },
+    }
 }
+
+logging.basicConfig(
+    filename='%s/%s' % (
+        configuration['logdir'],
+        datetime.datetime.now().strftime('vbx.log.%Y%m%d')),
+    level=logging.INFO)

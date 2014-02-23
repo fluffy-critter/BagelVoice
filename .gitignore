@@ -1,4 +1,6 @@
-db/voicebox.db
+db/bagel.db
+logs/*.log*
+logs/notifier.pid
 bootstrap.py
 *.pyc
 *.swp

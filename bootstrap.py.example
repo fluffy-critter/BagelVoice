@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 import model
 import bcrypt
 from model import *
@@ -54,36 +55,58 @@ makeRule(work, datetime.time(9,00), datetime.time(17,00), 'MTWRF')
 makeRoute(tnum, 'Cellphone', 'Number', '+15552223333')
 makeRoute(tnum, 'SIP provider', 'Sip', 'sip:foo@example.com')
 
+n = backfill.makeNotificationType(user, 'mailto:me@example.com')
+n.notify_sms = True
+n.notify_voicemail = True
+n = backfill.makeNotificationType(user, 'xmpp:me@example.com')
+n.notify_sms = True
+n.notify_voicemail = True
+n.save()
+
+
 client = backfill.getClient(user)
-for call in client.calls.list():
-    if call.direction == 'inbound':
-        inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == call.to)
-        peerNumber = call.from_
-    else:
-        # don't know how to handle this (yet) but we also don't do outgoing (yet)
-        continue
+call_count=client.calls.count()
+print "Synchronizing %d call records..." % call_count
+for page in range(call_count/25 + 1):
+    recs=client.calls.list(page=page,page_size=25)
+    print "page %d (%d records)" % (page,len(recs))
+    for call in recs:
+        if call.direction == 'inbound':
+            inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == call.to)
+            peerNumber = call.from_
+        else:
+            # don't know how to handle this (yet) but we also don't do outgoing (yet)
+            continue
 
-    peer = backfill.makePeer(user, peerNumber)
-    conversation = backfill.makeConversation(inbox, peer)
-    event = backfill.makeCallEvent(conversation, call, call.direction == 'inbound')
+        peer = backfill.makePeer(user, peerNumber)
+        conversation = backfill.makeConversation(inbox, peer)
+        print "%s peer=%s time=%s" % (call.sid,peer.phone_number, call.start_time)
+        event = backfill.makeCallEvent(conversation, call, call.direction == 'inbound')
 
-for message in client.messages.list():
-    if message.direction == 'inbound':
-        inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == message.to)
-        peerNumber = message.from_
-    else:
-        inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == message.from_)
-        peerNumber = message.to
+msg_count=client.messages.count()
+print "Synchronizing %d message records" % msg_count
+for page in range(msg_count/50 + 1):
+    for message in client.messages.list(page=page,page_size=50):
+        if message.direction == 'inbound':
+            inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == message.to)
+            peerNumber = message.from_
+        else:
+            inbox = Inbox.get(Inbox.user == user and Inbox.phone_number == message.from_)
+            peerNumber = message.to
 
-    peer = backfill.makePeer(user, peerNumber)
-    conversation = backfill.makeConversation(inbox, peer)
-    event = backfill.makeMessageEvent(conversation, message, message.direction == 'inbound')
-    # TODO MMS? (need to figure out how those are returned in JSON)
+        peer = backfill.makePeer(user, peerNumber)
+        conversation = backfill.makeConversation(inbox, peer)
+        event = backfill.makeMessageEvent(conversation, message, message.direction == 'inbound')
+        # TODO MMS? (need to figure out how those are returned in JSON)
 
-for vm in client.recordings.list():
-    try:
-        call = Event.get(Event.sid == vm.call_sid)
-    except Event.DoesNotExist:
-        # We don't have a call for this message
-        continue
-    attach = backfill.makeVoicemail(call, vm)
+vm_count=client.recordings.count()
+print "Synchronizing %d voicemails" % vm_count
+for page in range(vm_count/50 + 1):
+    for vm in client.recordings.list(page=page,page_size=50):
+        try:
+            call = Event.get(Event.sid == vm.call_sid)
+        except Event.DoesNotExist:
+            # We don't have a call for this message
+            continue
+        attach = backfill.makeVoicemail(call, vm)
+
