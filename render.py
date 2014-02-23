@@ -23,7 +23,7 @@ def renderEvent(event):
             event.status
             )
 
-    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime('%x %X')
+    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime('%x %H:%M')
 
     if event.call_duration:
         print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
@@ -44,10 +44,16 @@ def renderEvent(event):
                 attach.url, attach.mime_type)
         if attachBody:
             print >>out, '<div class="attachbody">%s</div>' % attachBody
-        print >>out, '<a href="%s">original %s</a>' % (attach.url, mimeclass)
+
+        print >>out, '<div class="desc">'
+        print >>out, '<a class="link" href="%s">original %s</a>' % (attach.url, mimeclass)
         if attach.duration:
             print >>out, '<span class="duration">(%d:%02d)</span>' % (int(attach.duration)/60,
                                                              attach.duration%60)
+        print >>out, '</div>'
+
+        if attach.transcription:
+            print >>out, '<div class="transcript">%s</div>' % attach.transcription
         print >>out, '</div>'
     print >>out, '</div>'
     return out.getvalue()

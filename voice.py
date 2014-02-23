@@ -8,7 +8,9 @@ import session
 import datetime
 import pytz
 import sys
+import logging
 
+logger = logging.getLogger(__name__)
 form = session.form()
 
 print """\
@@ -31,7 +33,11 @@ event = control.getEvent(form=form,
                          inbound=inbound,
                          type="voice")
 if state == 'transcribed':
-    # The rest of this handler is pointless
+    # Push forward any pending notifications
+    for n in event.pending_notifications:
+        e.time = datetime.datetime.now()
+        e.save()
+
     sys.exit()
 
 responseBody = None
@@ -44,6 +50,8 @@ if event.conversation.peer.blocked:
 
 user = event.inbox.user
 notifyQuery = None
+notifyDelay = None
+
 if not responseBody and state == 'enter-call':
     notifyQuery = user.notifications.where(Notification.notify_call_incoming == True)
     call_timeout = None
@@ -88,6 +96,7 @@ if not responseBody and state == 'enter-call':
 
 if not responseBody and state == 'post-call':
     notifyQuery = user.notifications.where(Notification.notify_call_missed == True)
+    notifyDelay = 60
     if event.status == 'completed' or form.getfirst('DialCallStatus') == 'completed':
         responseBody = '<Hangup/>'
     else:
@@ -96,20 +105,25 @@ if not responseBody and state == 'post-call':
             responseBody = '<Play>%s</Play>' % inbox.voicemail_greeting
         else:
             responseBody = '<Say>Please leave a message.</Say>'
-        responseBody += '<Record action="post-vm" maxLength="240"%s />' % (
-            inbox.transcribe_voicemail and ' transcribe="true" transcribeCallback="transcribed"' or ''
-            )
+        transcribeTag = ''
+        if inbox.transcribe_voicemail:
+            transcribeTag = ' transcribe="true" transcribeCallback="transcribed"'
+        responseBody += '<Record action="post-vm" maxLength="240"%s />' % transcribeTag
 
 if not responseBody and state == 'post-vm':
     notifyQuery = user.notifications.where(Notification.notify_voicemail == True)
+    # give the transcription service a chance to transcribe before notifying
+    if event.inbox.transcribe_voicemail and form.getfirst('RecordingDuration'):
+        notifyDelay = 60 + int(form.getfirst('RecordingDuration'))
     responseBody = '<Say>Your voicemail has been recorded. Thank you.</Say>'
 
 if not responseBody:
     responseBody = '<Say>An unknown error occurred. Please try again later. (state=%s)</Say>' % state
 
+logger.info("notifyDelay=%d", notifyDelay or 0)
 for n in notifyQuery:
     try:
-        control.notify(event, n)
+        control.notify(event, n, notifyDelay)
     except:
         logger.exception("Got error trying to notify on call")
 

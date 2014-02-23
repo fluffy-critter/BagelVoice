@@ -23,15 +23,14 @@ div#status div.error {
 .thread {
     border: solid black 1px;
     box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
-    min-width: 20em;
-    max-width: 30em;
+    min-width: 23em;
+    max-width: 33em;
     position: relative;
+    margin: 1ex;
 }
 
-@media screen and (min-device-width: 500px) {
+@media screen and (min-width: 550px) {
     .thread {
-	width: 30%;
-	margin: 1ex;
 	float: left;
     }
 }
@@ -107,6 +106,13 @@ input.sms {
     border-top: dotted black 1px;
 }
 
+.thread .call {
+    font-size: small;
+    font-style: italic;
+    padding: 1ex;
+    color: #999;
+}
+
 .thread .text {
     padding: 1ex;
 }
@@ -140,12 +146,35 @@ input.sms {
 .attachbody img {
     max-width: 100%;
 }
-.media {
+
+.media .desc {
     font-size: x-small;
 }
 .media .duration {
     color: #777;
     font-style: italic;
+}
+
+.media .transcript {
+    position: relative;
+    margin: 2em 2em;
+    font-style: italic;
+}
+.media .transcript:before, .media .transcript:after {
+    position: absolute;
+    font-size: 300%;
+    font-family: "Georgia", "Times", "Serif";
+    color: #999;
+}
+.media .transcript:before {
+    top: -0.5ex;
+    left: -1ex;
+    padding-right: 0.2ex;
+    content: open-quote;
+}
+.media .transcript:after {
+    content: close-quote;
+    bottom: -1.5ex;
 }
 
 .thread .footer {

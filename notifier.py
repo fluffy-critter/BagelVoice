@@ -45,6 +45,8 @@ def sendEmail(uri, event):
                                                               attach.duration%60)
                                                ) or '',
                                               attach.url)
+        if attach.transcription:
+            msg += "Transcript:\r\n\r\n%s\r\n\r\n" % attach.transcription
 
     msg += "\r\nTo view or reply, visit: {view}?t={tid}\r\n"
     logger.info("Sending email from %s to %s", fromAddr, toAddr)

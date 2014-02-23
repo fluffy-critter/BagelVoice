@@ -121,21 +121,23 @@ def getEvent(form, sidField, inbound, type):
 
     return event
 
-def notify(event, notification):
+def notify(event, notification, delay=None):
     schema=notification.uri.split(':')[0]
     mainConfig=configuration['notify']
     subConfig=mainConfig[schema] or mainConfig
+    time=datetime.datetime.now()
+    if delay:
+        time += datetime.timedelta(seconds=delay)
+        logger.info("Delaying notification by %d seconds to %s", delay, time)
     try:
-        NotificationQueue.create(
-            time=datetime.datetime.now(),
+        nn = NotificationQueue.get(event=event, notification=notification)
+        nn.time = time
+        nn.save()
+    except NotificationQueue.DoesNotExist:
+        nn = NotificationQueue.create(
+            time=time,
             event=event,
             notification=notification,
             retries_left = int(subConfig.get('max-retries') or mainConfig.get('max-retries') or 0),
             retry_wait = int(subConfig.get('retry-interval') or mainConfig.get('retry-interval') or 1000)
             )
-    except peewee.IntegrityError:
-        logger.warning("Already have a pending notification for %s from %s:%d (%s:%d)",
-                       notification.uri,
-                       event.type, event.id,
-                       event.conversation.peer.phone_number,
-                       event.conversation.id)

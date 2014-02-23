@@ -147,7 +147,7 @@ class NotificationQueue(BaseModel):
     # if the event has been handled already
     handled = BooleanField(default=False)
     # the event to notify them about
-    event = ForeignKeyField(Event)
+    event = ForeignKeyField(Event, related_name='pending_notifications')
     # the notification method
     notification = ForeignKeyField(Notification, related_name='pending')
     # How many retries are left
