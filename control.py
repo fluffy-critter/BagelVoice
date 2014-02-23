@@ -110,7 +110,7 @@ def getEvent(form, sidField, inbound, type):
                                        event=event)
         save = False
         if form.getfirst('RecordingDuration'):
-            attach = duration=int(form.getfirst('RecordingDuration'))
+            attach.duration = int(form.getfirst('RecordingDuration'))
             save = True
         if applyAttribs(attach, form, {
                 'TranscriptionText' : 'transcription'

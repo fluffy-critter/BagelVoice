@@ -98,7 +98,7 @@ def handleEvents():
     if num:
         logger.info("Completed %d notifications", num)
 
-    return nextTime or 10
+    return nextTime or 3
 
 if __name__ == '__main__':
     # If we're running as a daemon, just quietly sit around in the
@@ -109,4 +109,4 @@ if __name__ == '__main__':
             nextWait = handleEvents()
         except:
             logger.exception("Got exception handling pending notifications")
-        time.sleep(nextWait or 30)
+        time.sleep(nextWait or 3)

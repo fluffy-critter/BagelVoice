@@ -42,10 +42,13 @@ if event.conversation.peer.blocked:
     event.status = 'rejected'
     event.save()
 
+user = event.inbox.user
+notifyQuery = None
 if not responseBody and state == 'enter-call':
+    notifyQuery = user.notifications.where(Notification.notify_call_incoming == True)
     call_timeout = None
     dialString = ''
-    localNow = datetime.datetime.now(tz=pytz.timezone(event.inbox.user.timezone))
+    localNow = datetime.datetime.now(tz=pytz.timezone(user.timezone))
     localTime = localNow.time()
 
     for fwd in event.inbox.routes:
@@ -84,6 +87,7 @@ if not responseBody and state == 'enter-call':
         state = 'post-call'
 
 if not responseBody and state == 'post-call':
+    notifyQuery = user.notifications.where(Notification.notify_call_missed == True)
     if event.status == 'completed' or form.getfirst('DialCallStatus') == 'completed':
         responseBody = '<Hangup/>'
     else:
@@ -92,15 +96,23 @@ if not responseBody and state == 'post-call':
             responseBody = '<Play>%s</Play>' % inbox.voicemail_greeting
         else:
             responseBody = '<Say>Please leave a message.</Say>'
-        responseBody += '<Record action="post-vm" maxLength="240" %s/>' % (
-            user.transcribe_voicemail and ' transcribe="true" transcribeCallback="transcribed"'
+        responseBody += '<Record action="post-vm" maxLength="240"%s />' % (
+            inbox.transcribe_voicemail and ' transcribe="true" transcribeCallback="transcribed"' or ''
             )
 
 if not responseBody and state == 'post-vm':
+    notifyQuery = user.notifications.where(Notification.notify_voicemail == True)
     responseBody = '<Say>Your voicemail has been recorded. Thank you.</Say>'
 
 if not responseBody:
     responseBody = '<Say>An unknown error occurred. Please try again later. (state=%s)</Say>' % state
+
+for n in notifyQuery:
+    try:
+        control.notify(event, n)
+    except:
+        logger.exception("Got error trying to notify on call")
+
 
 print '<Response>'
 print responseBody

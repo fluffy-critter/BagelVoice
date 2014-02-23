@@ -53,6 +53,7 @@ class Inbox(BaseModel):
     phone_number = CharField(unique=True)
     name = CharField()
     voicemail_greeting = CharField(null=True)
+    transcribe_voicemail = BooleanField(default=False)
 
 # Routes for a call to take
 class CallRoute(BaseModel):
@@ -87,7 +88,6 @@ class Peer(BaseModel):
     phone_number = CharField()
     blocked = BooleanField(default=False)
     send_to_voicemail = BooleanField(default=False)
-    transcribe_voicemail = BooleanField(default=False)
     from_city = CharField(null=True)
     from_state = CharField(null=True)
     from_zip = CharField(null=True)
@@ -155,9 +155,10 @@ class NotificationQueue(BaseModel):
     # How long to wait before the next retry (exponential backoff), in milliseconds
     retry_wait = IntegerField()
     class Meta:
-        order_by = ('handled','time')
+        order_by = ('time',)
         indexes = (
             (('event', 'notification'), True),
+            (('handled',), False),
             )
 
 class Attachment(BaseModel):
