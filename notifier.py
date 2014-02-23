@@ -100,11 +100,11 @@ def handleEvents():
     if num:
         logger.info("Completed %d notifications", num)
 
-    return nextTime or 3
+    return min(nextTime, 15) or 15
 
 if __name__ == '__main__':
     # If we're running as a daemon, just quietly sit around in the
-    # background, getting messages with retries.
+    # background, sending out messages
     while True:
         nextWait = None
         try:
