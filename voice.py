@@ -13,15 +13,19 @@ import logging
 logger = logging.getLogger(__name__)
 form = session.form()
 
+responseBody = None
+
+argv = session.argv()
+if len(argv) < 2:
+    print """Status: 400 Bad Request\nContent-type: text/html\n\nMissing state"""
+    sys.exit()
+
+state = argv[1]
+
 print """\
 Content-type: text/xml;charset=utf-8
 
 """
-
-responseBody = None
-
-argv = session.argv()
-state = len(argv) > 1 and argv[1]
 
 if not form.getfirst('Direction') or form.getfirst('Direction') == 'inbound':
     inbound=True

@@ -14,6 +14,10 @@ logger=logging.getLogger(__name__)
 form = session.form()
 argv = session.argv()
 
+if not form.getfirst('MessageSid'):
+    print "Status: 400 Bad Request\nContent-type: text/html\n\nMissing message SID"
+    sys.exit()
+
 user = control.getUser(form)
 event = control.getEvent(form=form,
                          sidField='MessageSid',
