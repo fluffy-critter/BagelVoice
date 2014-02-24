@@ -1,8 +1,9 @@
 #!/usr/bin/python
-#
-# A notifier mechanism that sends notifications about
-# stuff. Eventually this module will be replaced by the notifier
-# bot/jabber console.
+
+"""A notifier mechanism that sends notifications about stuff.
+
+Eventually this module will be replaced by the notifier bot/jabber console.
+"""
 
 from config import configuration
 import model
@@ -62,8 +63,12 @@ def sendEmail(uri, event):
                                                tid=event.conversation.id))
     smtp.quit()
 
-# Handle all of the events in the past; returns the number of milliseconds until the next time to check the queue
+# 
 def handleEvents():
+    """Handle all of the events in the past.
+    
+    Returns the number of milliseconds until the next time to check the queue.
+    """
     nextTime = None
     for item in NotificationQueue.select().where(NotificationQueue.handled == False):
         now = datetime.datetime.now()

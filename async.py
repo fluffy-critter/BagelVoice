@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Routines and request handler for getting information about the inbox
+"""Routines and request handler for getting information about the inbox."""
 
 import session
 session.user(doLogin=False)
@@ -58,4 +58,3 @@ if __name__ == '__main__':
 
     print "Content-type: application/json\n\n"
     print json.dumps(response)
-                                   

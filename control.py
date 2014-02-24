@@ -122,10 +122,10 @@ def getEvent(form, sidField, inbound, type):
     return event
 
 def notify(event, notification, delay=None):
-    schema=notification.uri.split(':')[0]
-    mainConfig=configuration['notify']
-    subConfig=mainConfig[schema] or mainConfig
-    time=datetime.datetime.now()
+    schema = notification.uri.split(':')[0]
+    mainConfig = configuration['notify']
+    subConfig = mainConfig[schema] or mainConfig
+    time = datetime.datetime.now()
     if delay:
         time += datetime.timedelta(seconds=delay)
         logger.info("Delaying notification by %d seconds to %s", delay, time)

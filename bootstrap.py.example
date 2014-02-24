@@ -65,10 +65,10 @@ n.save()
 
 
 client = backfill.getClient(user)
-call_count=client.calls.count()
+call_count = client.calls.count()
 print "Synchronizing %d call records..." % call_count
 for page in range(call_count/25 + 1):
-    recs=client.calls.list(page=page,page_size=25)
+    recs = client.calls.list(page=page,page_size=25)
     print "page %d (%d records)" % (page,len(recs))
     for call in recs:
         if call.direction == 'inbound':

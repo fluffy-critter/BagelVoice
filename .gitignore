@@ -4,4 +4,7 @@ logs/notifier.pid
 bootstrap.py
 *.pyc
 *.swp
+.#*
+\#*
+*~
 config.py
