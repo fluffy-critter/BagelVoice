@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Routines and request handler for getting information about the inbox
+"""Routines and request handler for getting information about the inbox."""
 
 import session
 session.user(doLogin=False)

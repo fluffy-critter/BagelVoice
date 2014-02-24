@@ -17,8 +17,8 @@ class BaseModel(Model):
     def update_schema():
         ''' do nothing by default '''
 
-# A user, with a 1:1 mapping to a Twilio account
 class User(BaseModel):
+    """A user, with a 1:1 mapping to a Twilio account."""
     username = CharField(null=False,unique=True)
     password = CharField()
     email = CharField(unique=True)
@@ -26,8 +26,8 @@ class User(BaseModel):
     twilio_auth_token = CharField()
     timezone = CharField(default='UTC')
 
-# Notification settings
 class Notification(BaseModel):
+    """Notification settings."""
     user = ForeignKeyField(User, related_name='notifications')
     # notification URI, e.g. mailto:foo@example.com, xmpp:foo@example.com, or aim:aolsystemmsg
     uri = CharField(unique=True)
@@ -40,23 +40,23 @@ class Notification(BaseModel):
     # Notify when a voicemail is received
     notify_voicemail = BooleanField(default=True)
 
-# User login sessions
 class WebSession(BaseModel):
+    """User login sessions."""
     session_id = CharField(unique=True)
     user = ForeignKeyField(User, related_name='web_sessions')
     last_ip = CharField()
     last_seen = DateTimeField()
 
-# An inbox, i.e. a phone number
 class Inbox(BaseModel):
+    """An inbox, i.e. a phone number."""
     user = ForeignKeyField(User, related_name='inboxes')
     phone_number = CharField(unique=True)
     name = CharField()
     voicemail_greeting = CharField(null=True)
     transcribe_voicemail = BooleanField(default=False)
 
-# Routes for a call to take
 class CallRoute(BaseModel):
+    """Routes for a call to take"""
     inbox = ForeignKeyField(Inbox, related_name='routes')
     name = CharField();
     
@@ -71,8 +71,8 @@ class CallRoute(BaseModel):
             (('inbox', 'dest_type', 'dest_addr'), True),
             )
 
-# When to activate a call route
 class CallRouteRule(BaseModel):
+    """A rule for when to activate a call route."""
     route = ForeignKeyField(CallRoute, related_name='rules')
     # start time (in user's local timezone)
     start_time = TimeField()
@@ -81,8 +81,8 @@ class CallRouteRule(BaseModel):
     # on which days to activate (string containing one or more of MTWRFSU)
     active_days = CharField()
 
-# Someone with whom a conversation occurs
 class Peer(BaseModel):
+    """Someone with whom a conversation occurs."""
     user = ForeignKeyField(User, related_name='peers')
     display_name = CharField(null=True)
     phone_number = CharField()
@@ -98,9 +98,9 @@ class Peer(BaseModel):
             # ensure that any given phone number only appears once
             (('user', 'phone_number'), True),
             )
-    
-# A conversation thread
+
 class Conversation(BaseModel):
+    """A conversation thread."""
     user = ForeignKeyField(User, related_name='threads')
     inbox = ForeignKeyField(Inbox, related_name='threads')
     peer = ForeignKeyField(Peer, related_name='threads')
@@ -113,8 +113,8 @@ class Conversation(BaseModel):
             )
         order_by = ('-last_update',)    
 
-# An event in a conversation
 class Event(BaseModel):
+    """An event in a conversation."""
     sid = CharField(unique=True)
     inbox = ForeignKeyField(Inbox, related_name='events')
     conversation = ForeignKeyField(Conversation, related_name='events')
@@ -142,6 +142,7 @@ class Event(BaseModel):
 #       n.retries_left--
 #       n.save()
 class NotificationQueue(BaseModel):
+    """A queue of pending notifications."""
     # when to next try the notification (NOTE: uses local datetime.now(), NOT the normalized timeutil time)
     time = DateTimeField(index=True)
     # if the event has been handled already

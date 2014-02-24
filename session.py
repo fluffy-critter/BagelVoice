@@ -17,7 +17,7 @@ ipAddr = os.getenv('REMOTE_ADDR')
 _user = None
 
 def form():
-    # Gets the parsed CGI form values. MUST be retrieved from here.
+    """Gets the parsed CGI form values. MUST be retrieved from here."""
     global _form
     return _form
 
@@ -31,9 +31,10 @@ def argv():
     return argv
 
 def request_url():
-    # try to reconstruct our URL from what we're given, because a
-    # Location header has to be absolute to prevent Apache from
-    # short-circuiting incorrectly
+    """Tries to reconstruct our URL from what we're given, because a
+    location header has to be absolute to prevent Apache from
+    short-circuiting incorrectly.
+    """
     https = (os.getenv('HTTPS') == 'on')
     expectedPort = https and '443' or '80'
     actualPort = os.getenv('SERVER_PORT')
@@ -44,12 +45,13 @@ def request_url():
 
 
 def user(doLogin=True):
+    """Gets the currently logged in user, or presents a login form and
+    exits if there is none.
+    """
     global _user
     if _user:
         return _user
 
-    # Get the currently logged-in user, or presents a login form and
-    # exits if there is none
     cookie = Cookie.SimpleCookie()
     cookie_string = os.environ.get('HTTP_COOKIE')
     if cookie_string:

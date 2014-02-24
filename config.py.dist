@@ -1,8 +1,10 @@
+"""Bagel Voice configuration file
+
+Copy this to config.py and edit the values as appropriate.
+"""
+
 import logging
 import datetime
-
-# Bagel Voice configuration file
-# Copy this to config.py and edit the values as appropriate
 
 configuration = {
     # Root URL of the site install
