@@ -58,4 +58,3 @@ if __name__ == '__main__':
 
     print "Content-type: application/json\n\n"
     print json.dumps(response)
-                                   
