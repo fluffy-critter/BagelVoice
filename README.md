@@ -60,7 +60,7 @@ Setup
 -----
 
 1. Get an account and phone number at [Twilio](http://twilio.com), if
-   you haven't already
+   you haven't already.
 
 2. Put the Bagel Voice files into a directory that's servable by an
    httpd.  There is a `.htaccess` file included that will hopefully do
