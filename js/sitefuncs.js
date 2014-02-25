@@ -41,6 +41,7 @@ $(document).ready(function() {
 
 	function updateThread(obj) {
 	    tbox = $("#thread-" + obj.tid);
+	    console.log(obj.tid + ": Found " + tbox.length + " matching thread boxes")
 	    if (tbox.length) {
 		tbox.addClass('unread');
 		var prepend = '';
@@ -55,6 +56,7 @@ $(document).ready(function() {
 		    tbox.children('.events').prepend(prepend);
 		}
 	    } else {
+		console.log("Creating new threadbox for " + obj.tid)
 		inbox = $("#inbox");
 		if (inbox.length) {
 		    $.ajax({
@@ -66,6 +68,9 @@ $(document).ready(function() {
 			    threadObj.on("click focus focusin", markRead);
 			    threadObj.children('.more').on("click focus focusin",
 							   clickMore);
+			},
+			error: function(jq, st, th) {
+			    console.log("Couldn't render thread: " + st + ' ' + th);
 			}
 		    });
 		}

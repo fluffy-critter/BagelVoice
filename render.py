@@ -11,6 +11,10 @@ import urllib
 user = session.user()
 tz = timeutil.get_tz(user)
 
+def sanitize(str):
+    ''' Incredibly basic HTML sanitizer. Why doesn't Python come with this? '''
+    return str.replace('<', '&lt;').replace('>', '&gt;')
+
 def renderEvent(event):
     out = StringIO()
     print >>out, '<div class="event %s" id="event-%d">' % (
@@ -28,7 +32,7 @@ def renderEvent(event):
     if event.call_duration:
         print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
     if event.message_body:
-        print >>out, '<div class="text">%s</div>' % event.message_body
+        print >>out, '<div class="text">%s</div>' % sanitize(event.message_body)
 
     for attach in event.media:
         print >>out, '<div class="media">'
@@ -67,14 +71,14 @@ def renderThread(thread, limit=None):
     peer = thread.peer
     print >>out, '<span class="phone">%s</span>' % peer.phone_number
     if peer.display_name:
-        print >>out, '<span class="name">%s</span>' % peer.display_name
+        print >>out, '<span class="name">%s</span>' % sanitize(peer.display_name)
     locStr = ''
     for part in [peer.from_city, peer.from_state, peer.from_country]:
         if part:
             if locStr: locStr += ', '
             locStr += part
     if locStr:
-        print >>out, '<span class="location">%s</span>' % locStr
+        print >>out, '<span class="location">%s</span>' % sanitize(locStr)
     print >>out, '<span class="inbox">%s (%s)</span>' % (inbox.phone_number, inbox.name)
     print >>out, '<div class="footer"></div>'
     print >>out, '</div>'
