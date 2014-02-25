@@ -19,17 +19,21 @@ def getUser(form):
     return User.get(User.twilio_sid == form.getfirst('AccountSid'))
 
 def getInbox(form, user, inboxField):
-    return Inbox.get(Inbox.user == user
-                     and Inbox.phone_number == form.getfirst(inboxField))
+    return Inbox.get(Inbox.user == user,
+                     Inbox.phone_number == form.getfirst(inboxField))
 
 def getPeer(form, user, whoField=None, whoValue=None):
+    logger.info('getpeer whoField=%s (%s) whoValue=%s',
+                whoField,
+                whoField and form.getfirst('whoField') or '',
+                whoValue)
     if whoValue:
         phone_number = whoValue
     else:
         phone_number = form.getfirst(whoField)
     try:
-        peer = Peer.get(Peer.user == user
-                              and Peer.phone_number == phone_number)
+        peer = Peer.get(Peer.user == user,
+                        Peer.phone_number == phone_number)
     except Peer.DoesNotExist:
         peer = Peer.create(user=user, phone_number=phone_number)
     if applyAttribs(peer, form, {
@@ -43,10 +47,16 @@ def getPeer(form, user, whoField=None, whoValue=None):
 
 def getConversation(form, inbox, peer):
     splitTime = timeutil.getTime() - config.configuration['thread-split-age'];
+    logger.info('getConversation %s %s', inbox.phone_number, peer.phone_number)
     try:
-        conv = Conversation.get(Conversation.inbox == inbox
-                                and Conversation.peer == peer
-                                and Conversation.last_update > splitTime)
+        conv = Conversation.get(Conversation.inbox == inbox,
+                                Conversation.peer == peer,
+                                Conversation.last_update > splitTime)
+        logger.info("%s: got existing conversation for %s->%s   %d->%d",
+                    peer.phone_number,
+                    conv.inbox.phone_number,
+                    conv.peer.phone_number,
+                    peer.id, conv.peer.id)
     except Conversation.DoesNotExist:
         logger.info("Creating new conversation for %s -> %s", inbox.phone_number, peer.phone_number)
         conv = Conversation.create(
@@ -64,14 +74,24 @@ def getEvent(form, sidField, inbound, type):
         whoField = 'To'
         inboxField = 'From'
         
+    logger.info('getEvent sid=%s inbound=%s who=%s inbox=%s',
+                form.getfirst(sidField),
+                inbound,
+                form.getfirst(whoField),
+                form.getfirst(inboxField))
+    whoValue=form.getfirst(whoField)
+
     try:
         event = Event.get(Event.sid == form.getfirst(sidField))
     except Event.DoesNotExist:
         user = getUser(form)
         inbox = getInbox(form, user, inboxField)
-        peer = getPeer(form, inbox.user, whoField)
+        peer = getPeer(form, user, whoValue=whoValue)
+        logger.info('   peer=%s %s', peer.phone_number, peer.display_name)
         now = timeutil.getTime()
         conversation = getConversation(form, inbox, peer)
+        logger.info('getEvent   conversation.peer=%s %s',
+                    conversation.peer.phone_number, conversation.peer.display_name)
         
         event = Event.create(
             sid=form.getfirst(sidField),
