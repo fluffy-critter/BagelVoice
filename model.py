@@ -54,6 +54,7 @@ class Inbox(BaseModel):
     name = CharField()
     voicemail_greeting = CharField(null=True)
     transcribe_voicemail = BooleanField(default=False)
+    max_ring_time = IntegerField(null=True)
 
 class CallRoute(BaseModel):
     """Routes for a call to take"""

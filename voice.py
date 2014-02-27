@@ -22,11 +22,6 @@ if len(argv) < 2:
 
 state = argv[1]
 
-print """\
-Content-type: text/xml;charset=utf-8
-
-"""
-
 if not form.getfirst('Direction') or form.getfirst('Direction') == 'inbound':
     inbound=True
 else:
@@ -52,13 +47,14 @@ if event.conversation.peer.blocked:
     event.status = 'rejected'
     event.save()
 
-user = event.inbox.user
+inbox = event.inbox
+user = inbox.user
 notifyQuery = None
 notifyDelay = None
 
 if not responseBody and state == 'enter-call':
     notifyQuery = user.notifications.where(Notification.notify_call_incoming == True)
-    call_timeout = None
+    call_timeout = inbox.max_ring_time
     dialString = ''
     localNow = datetime.datetime.now(tz=pytz.timezone(user.timezone))
     localTime = localNow.time()
@@ -131,6 +127,11 @@ for n in notifyQuery:
     except:
         logger.exception("Got error trying to notify on call")
 
+
+print """\
+Content-type: text/xml;charset=utf-8
+
+"""
 
 print '<Response>'
 print responseBody
