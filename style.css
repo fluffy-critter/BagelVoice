@@ -29,12 +29,6 @@ div#status div.error {
     margin: 1ex;
 }
 
-@media screen and (min-width: 550px) {
-    .thread {
-	float: left;
-    }
-}
-
 .unread {
     border-width: 2px;
 }

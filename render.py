@@ -11,6 +11,21 @@ import urllib
 user = session.user()
 tz = timeutil.get_tz(user)
 
+def pageHead(title="Bagel Voice"):
+    ''' Gets a string that represents the common header for all HTML pages, including headers '''
+    return """Content-type: text/html;charset=utf-8
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>%s</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="js/jquery.min.js"></script>
+<script src="js/sitefuncs.js"></script>
+
+</head>""" % title
+
 def sanitize(str):
     ''' Incredibly basic HTML sanitizer. Why doesn't Python come with this? '''
     return str.replace('<', '&lt;').replace('>', '&gt;')
@@ -69,7 +84,7 @@ def renderThread(thread, limit=None):
     print >>out, '<div class="who">'
     inbox = thread.inbox
     peer = thread.peer
-    print >>out, '<span class="phone">%s</span>' % peer.phone_number
+    print >>out, '<a class="phone" href="?p=%s">%s</a>' % (peer.id, peer.phone_number)
     if peer.display_name:
         print >>out, '<span class="name">%s</span>' % sanitize(peer.display_name)
     locStr = ''

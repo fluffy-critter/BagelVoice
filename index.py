@@ -6,18 +6,9 @@ user = session.user()
 from model import *
 import render
 
-print """Content-type: text/html;charset=utf-8
+print render.pageHead()
 
-<!DOCTYPE html>
-<html>
-<head>
-<title>Bagel Voice</title>
-<link rel="stylesheet" href="style.css">
-
-<script src="js/jquery.min.js"></script>
-<script src="js/sitefuncs.js"></script>
-
-</head><body class="dashboard">
+print """<body class="dashboard">
 
 <h1>Bagel Voice</h1>
 

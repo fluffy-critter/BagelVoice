@@ -34,8 +34,8 @@ event = control.getEvent(form=form,
 if state == 'transcribed':
     # Push forward any pending notifications
     for n in event.pending_notifications:
-        e.time = datetime.datetime.now()
-        e.save()
+        n.time = datetime.datetime.now()
+        n.save()
 
     sys.exit()
 
