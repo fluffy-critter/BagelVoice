@@ -26,18 +26,28 @@ print render.pageHead("Address book")
 
 print '<p class="back"><a href=".">Back to inbox</a></p>'
 
+print '''<table id="addressbook">
+<tr><th colspan="2">Number</th><th>Display Name</th><th colspan="2">Disposition</th></tr>
+'''
+
 for p in user.peers:
     print '''
-<div class="peer"><form method="POST" action="peer.py">
-<input type="hidden" name="cmd" value="edit">
-<input type="hidden" name="p" value="{pid}">
-<a href=".?p={pid}">{num}</a>
-<input type="text" name="name" value="{displayName}" placeholder="Display Name">
-<label for="vm">Send to voicemail <input type="checkbox" name="vm" value="1" {vmCheck}"></label>
-<label for="block">Block all calls <input type="checkbox" name="block" value="1" {blockCheck}"></label>
-</form></div>
+<tr class="peer" id="peer-{pid}">
+<td class="num"><a href=".?p={pid}">{num}</a></td>
+<td class="loc">{loc}</td>
+<td class="name"><input type="text" name="name" value="{displayName}" placeholder="Unnamed"></td>
+<td class="block"><label for="block-{pid}">Block</label> <input type="checkbox" name="blocked" {blockChk} id="block-{pid}"></td>
+<td class="vm"><label for="vm-{pid}">VM</label> <input type="checkbox" name="vm" {vmChk} id="vm-{pid}"></td>
+</tr>
 '''.format(pid=p.id,
            num=p.phone_number,
+           loc=render.getPeerLocation(p),
            displayName=p.display_name or '',
-           vmCheck=p.send_to_voicemail and 'checked' or '',
-           blockCheck=p.blocked and 'checked' or '')
+           blockChk=p.blocked and 'checked="1"' or '',
+           vmChk=p.send_to_voicemail and 'checked="1"' or '')
+
+print '''
+</table>
+</body>
+</html>
+'''

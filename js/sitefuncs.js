@@ -24,6 +24,54 @@ $(document).ready(function() {
 	});
     }
 
+    editCount = 0;
+    function editPeer(event) {
+	console.log("editPeer");
+	console.dir(event.target);
+
+	var pid;
+	for (node = event.target.parentNode; node; node = node.parentNode) {
+	    idsplit = node.id.split('-')
+	    if (idsplit.length == 2 && idsplit[0] == 'peer') {
+		pid = idsplit[1];
+		break;
+	    }
+	}
+
+	var key=event.target.name
+	var val;
+	if (event.target.type == 'checkbox') {
+	    val=event.target.checked?'1':'0';
+	} else {
+	    val=event.target.value;
+	}
+
+	if (!editCount++) {
+	    $('#status').addClass('updating');
+	}
+
+	console.log('pid=' + pid + ' key=' + key + ' val=' + val);
+
+	$.ajax({
+	    url: 'async.py/editpeer/' + pid + '?' + key + '=' + encodeURIComponent(val),
+	    dataType: 'json',
+	    success: function(json) {
+		console.log("Got result: " + json);
+		if (!--editCount) {
+		    $('#status').removeClass('updating');
+		}
+	    },
+	    error: function(jq,st,th) {
+		console.log("Got error: " + st + ' ' + th);
+		if (!--editCount) {
+		    $('#status').removeClass('updating');
+		}
+		$('#status').addClass('error');
+		$('#status').html('<div>Error: ' + st + ' ' + th + '</div>');
+	    }
+	});
+    }
+	    
     function pollForUpdates() {
 	var lastUpdate;
 	var retry = 5000;
@@ -127,4 +175,6 @@ $(document).ready(function() {
     $(".thread").on("click focus focusin", markRead);
     $(".thread .more").on("click focus focusin", clickMore);
     pollForUpdates();
+
+    $("#addressbook .peer input").on("change", editPeer);
 })

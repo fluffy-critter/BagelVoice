@@ -54,11 +54,12 @@ input.sms {
 
 .thread .who .phone {
     font-weight: bold;
-    margin-right: 1em;
+    margin-right: 1ex;
 }
 
 .thread .who .name {
     color: #333;
+    margin-right: 1ex;
 }
 
 .thread .who .location {
