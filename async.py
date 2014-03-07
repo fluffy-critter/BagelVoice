@@ -13,6 +13,9 @@ import timeutil
 import sys
 from model import *
 import config
+import logging
+
+logger=logging.getLogger("async") 
 
 user = session.user()
 argv = session.argv()
@@ -55,6 +58,23 @@ if __name__ == '__main__':
                 thread.unread = False
                 thread.save()
         response = count
+    elif argv[1] == 'editpeer':
+        if len(argv) != 3:
+            print "Status: 400 Bad Request\nContent-type: text/html\n\nMissing peer id"
+            sys.exit()
+
+        for peer in user.peers.where(Peer.id == int(argv[2])):
+            if form.getfirst('name'):
+                logger.info('name=%s', form.getfirst('name'))
+                peer.display_name = form.getfirst('name')
+            if form.getfirst('blocked'):
+                logger.info('blocked=%s', form.getfirst('blocked'))
+                peer.blocked = int(form.getfirst('blocked'))
+            if form.getfirst('vm'):
+                logger.info('vm=%s', form.getfirst('vm'))
+                peer.send_to_voicemail = int(form.getfirst('vm'))
+            peer.save()
+            logger.info("name=%s blocked=%s vm=%s", peer.display_name, peer.blocked, peer.send_to_voicemail)
 
     print "Content-type: application/json\n\n"
     print json.dumps(response)

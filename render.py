@@ -11,6 +11,21 @@ import urllib
 user = session.user()
 tz = timeutil.get_tz(user)
 
+def pageHead(title=None):
+    ''' Gets a string that represents the common header for all HTML pages, including headers '''
+    return """Content-type: text/html;charset=utf-8
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bagel Voice%s</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="js/jquery.min.js"></script>
+<script src="js/sitefuncs.js"></script>
+
+</head>""" % (title and ': %s' % title or '')
+
 def sanitize(str):
     ''' Incredibly basic HTML sanitizer. Why doesn't Python come with this? '''
     return str.replace('<', '&lt;').replace('>', '&gt;')
@@ -62,6 +77,14 @@ def renderEvent(event):
     print >>out, '</div>'
     return out.getvalue()
 
+def getPeerLocation(peer):
+    locStr = ''
+    for part in [peer.from_city, peer.from_state, peer.from_country]:
+        if part:
+            if locStr: locStr += ', '
+            locStr += part
+    return locStr
+
 def renderThread(thread, limit=None):
     out = StringIO()
     print >>out, '<div id="thread-%d" class="thread%s">' % (thread.id, thread.unread and ' unread' or '')
@@ -69,14 +92,10 @@ def renderThread(thread, limit=None):
     print >>out, '<div class="who">'
     inbox = thread.inbox
     peer = thread.peer
-    print >>out, '<span class="phone">%s</span>' % peer.phone_number
+    print >>out, '<a class="phone" href="?p=%s">%s</a>' % (peer.id, peer.phone_number)
     if peer.display_name:
         print >>out, '<span class="name">%s</span>' % sanitize(peer.display_name)
-    locStr = ''
-    for part in [peer.from_city, peer.from_state, peer.from_country]:
-        if part:
-            if locStr: locStr += ', '
-            locStr += part
+    locStr = getPeerLocation(peer)
     if locStr:
         print >>out, '<span class="location">%s</span>' % sanitize(locStr)
     print >>out, '<span class="inbox">%s (%s)</span>' % (inbox.phone_number, inbox.name)
