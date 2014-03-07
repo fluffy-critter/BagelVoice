@@ -110,10 +110,10 @@ def handleEvents():
 if __name__ == '__main__':
     # If we're running as a daemon, just quietly sit around in the
     # background, sending out messages
-    while True:
-        nextWait = None
-        try:
+    #while True:
+    #    nextWait = None
+    #    try:
             nextWait = handleEvents()
-        except:
-            logger.exception("Got exception handling pending notifications")
-        time.sleep(nextWait or 3)
+    #    except:
+    #        logger.exception("Got exception handling pending notifications")
+    #    time.sleep(nextWait or 3)
