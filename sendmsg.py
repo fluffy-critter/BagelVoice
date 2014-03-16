@@ -66,4 +66,4 @@ with model.transaction():
 print '''Content-type: text/html
 Location: %s%s
 
-Redirecting to the app''' % (config.configuration['root-url'], urllib.unquote(form.getfirst('redir') or '.'))
+Redirecting to the app''' % (config.configuration['root-url'], urllib.unquote(form.getfirst('redir') or '/'))

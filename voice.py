@@ -27,6 +27,22 @@ if not form.getfirst('Direction') or form.getfirst('Direction') == 'inbound':
 else:
     inbound=False
     
+def reject():
+    print "Content-type: application/xml\n\n<Response><Reject/></Response>"
+    sys.exit()
+
+# Ignore forwarding loops
+if form.getfirst('From') == form.getfirst('To'):
+    reject()
+
+user = control.getUser(form)
+
+if inbound:
+    inbox = control.getInbox(form,user,'To')
+    if (form.getfirst('ForwardedFrom')
+        and inbox.routes.select().where(CallRoute.dest_addr == form.getfirst('ForwardedFrom')).count()):
+        reject()
+
 event = control.getEvent(form=form,
                          sidField='CallSid',
                          inbound=inbound,
@@ -43,9 +59,9 @@ responseBody = None
     
 # Blacklist unwanted callers
 if event.conversation.peer.blocked:
-    responseBody = '<Reject/>'
     event.status = 'rejected'
     event.save()
+    reject()
 
 inbox = event.inbox
 user = inbox.user
@@ -61,7 +77,9 @@ if not responseBody and state == 'enter-call':
 
     for fwd in event.inbox.routes:
 
-        active = fwd.active
+        active = (fwd.active
+                  and fwd.dest_addr != event.conversation.peer.phone_number
+                  and fwd.dest_addr != form.getfirst('ForwardedFrom'))
         if active and fwd.rules.count():
             active = False
             for rule in fwd.rules:
