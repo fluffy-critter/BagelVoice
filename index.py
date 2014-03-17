@@ -16,6 +16,8 @@ print """<body class="dashboard">
 
 """
 
+print render.renderUserBox()
+
 form = session.form()
 if form.getfirst('t'):
     thread = Conversation.get(Conversation.user == user and Conversation.id == int(form.getfirst('t')))
