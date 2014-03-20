@@ -7,12 +7,13 @@ Eventually this module will be replaced by the notifier bot/jabber console.
 
 from config import configuration
 import model
-from model import NotificationQueue
+from model import NotificationQueue, CnamLookupQueue
 import os
 import datetime
 import time
 import logging
 import smtplib
+import opencnam
 
 # TODO make the background notifier not write to one old logfile in perpetuity
 logger = logging.getLogger(__name__)
@@ -63,7 +64,6 @@ def sendEmail(uri, event):
                                                tid=event.conversation.id))
     smtp.quit()
 
-# 
 def handleEvents():
     """Handle all of the events in the past.
     
@@ -104,6 +104,25 @@ def handleEvents():
     num =  NotificationQueue.delete().where(NotificationQueue.handled == True).execute()
     if num:
         logger.info("Completed %d notifications", num)
+
+    for item in CnamLookupQueue.select().where(CnamLookupQueue.handled == False):
+        peer = item.peer
+        if not peer.display_name:
+            user = peer.user
+            try:
+                phone = opencnam.Phone(peer.phone_number,
+                                       account_sid=user.opencnam_sid,
+                                       auth_token=user.opencnam_auth_token)
+                if phone.cnam:
+                    peer.display_name = phone.cnam
+                    peer.save()
+            except opencnam.errors.InvalidPhoneNumberError:
+                logger.warn("Invalid phone number %s", peer.phone_number)
+        item.handled = True
+
+    num = CnamLookupQueue.delete().where(CnamLookupQueue.handled == True).execute()
+    if num:
+        logger.info("Completed %d CNAM lookups", num)
 
     return min(nextTime, 15) or 15
 

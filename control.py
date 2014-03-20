@@ -43,6 +43,11 @@ def getPeer(form, user, whoField=None, whoValue=None):
             'FromCountry': 'from_country'
             }):
         peer.save()
+    if not peer.display_name:
+        try:
+            CnamLookupQueue.create(peer=peer)
+        except:
+            pass
     return peer
 
 def getConversation(form, inbox, peer):
