@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from model import *
+import model
 import control
 import cgi
 import logging
@@ -19,10 +20,11 @@ if not form.getfirst('MessageSid'):
     sys.exit()
 
 user = control.getUser(form)
-event = control.getEvent(form=form,
-                         sidField='MessageSid',
-                         inbound=(len(argv) > 1 and argv[1] == 'incoming'),
-                         type="text")
+with model.transaction():
+    event = control.getEvent(form=form,
+                             sidField='MessageSid',
+                             inbound=(len(argv) > 1 and argv[1] == 'incoming'),
+                             type="text")
 
 for a in range(int(form.getfirst('NumMedia') or 0)):
     content_type = form.getfirst('MediaContentType%d' % a)
@@ -42,6 +44,7 @@ if event.conversation.peer.blocked:
 if argv[1] == 'incoming':
     for n in user.notifications.where(Notification.notify_sms == True):
         try:
+            # TODO notify at the conversation level, so multiple messages don't send multiple emails
             control.notify(event, n)
         except:
             logger.exception("Got error trying to notify on SMS")

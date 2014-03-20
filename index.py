@@ -14,8 +14,9 @@ print """<body class="dashboard">
 
 <div id="status"></div>
 
-<div id="inbox">
 """
+
+print render.renderUserBox()
 
 form = session.form()
 if form.getfirst('t'):
@@ -37,6 +38,7 @@ else:
     else:
         print '<h2>Showing all conversations</h2>'
 
+    print '<div id="inbox">'
     for thread in threads:
         if count == 0: limit=10
         elif count < 5: limit=5

@@ -54,6 +54,7 @@ As of right now (2/23/2014) it's very early in development. You will need the fo
     - [pytz](http://pytz.sourceforge.net/)
     - [twilio](http://twilio.com/docs/python/install)
     - [peewee](https://github.com/coleifer/peewee)
+    - [opencnam](https://github.com/telephonyresearch/python-opencnam)
 - A bit of patience (knowing Python doesn't hurt)
 
 Setup
@@ -115,4 +116,4 @@ Future plans
   dialbacks, text conversations, etc. to occur via any IM client)
 
 - Port it to an application framework such as
-  [Flask](http://flask.pocoo.org/)
+  [Flask](http://flask.pocoo.org/) or [Twisted](http://twistedmatrix.com)

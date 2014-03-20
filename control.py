@@ -43,6 +43,11 @@ def getPeer(form, user, whoField=None, whoValue=None):
             'FromCountry': 'from_country'
             }):
         peer.save()
+    if not peer.display_name:
+        try:
+            CnamLookupQueue.create(peer=peer)
+        except:
+            pass
     return peer
 
 def getConversation(form, inbox, peer):
@@ -152,7 +157,7 @@ def notify(event, notification, delay=None):
     try:
         nn = NotificationQueue.get(event=event, notification=notification)
         nn.time = time
-        logger.log("Updated notify time for %d->%s to %s", event.id, notification.uri, time)
+        logger.info("Updated notify time for %d->%s to %s", event.id, notification.uri, time)
         nn.save()
     except NotificationQueue.DoesNotExist:
         nn = NotificationQueue.create(
@@ -162,5 +167,5 @@ def notify(event, notification, delay=None):
             retries_left = int(subConfig.get('max-retries') or mainConfig.get('max-retries') or 0),
             retry_wait = int(subConfig.get('retry-interval') or mainConfig.get('retry-interval') or 1000)
             )
-        logger.log("Created notification for %d->%s at %s", event.id, notification.uri, time)
+        logger.info("Created notification for %d->%s at %s", event.id, notification.uri, time)
     return nn

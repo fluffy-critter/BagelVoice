@@ -7,6 +7,7 @@ import timeutil
 import sys
 import os
 import urllib
+import config
 
 user = session.user()
 tz = timeutil.get_tz(user)
@@ -125,8 +126,14 @@ def renderThread(thread, limit=None):
 
 def renderUserBox():
     out = StringIO()
-    print >>out, '<div id="user">Welcome, %s!' % user.username
-    print >>out, '<ul class="actions"><li><a href="session.py/logout">log out</a></li></ul>'
+    print >>out, '''
+<div id="user">Welcome, {u}!
+<ul class="actions">
+<li><a href="{r}/session.py/logout">log out</a></li>
+<li><a href="{r}/peer.py">address book</a></li>
+</ul>
+</div>
+'''.format(u=user.username,r=config.configuration['root-url'])
     return out.getvalue()
 
 if __name__ == '__main__':

@@ -25,6 +25,18 @@ class User(BaseModel):
     twilio_sid = CharField(unique=True)
     twilio_auth_token = CharField()
     timezone = CharField(default='UTC')
+    opencnam_sid = CharField(null=True)
+    opencnam_auth_token = CharField(null=True)
+
+    @staticmethod
+    def update_schema():
+        """ add the opencnam fields """
+        try:
+            database.execute_sql('ALTER TABLE user ADD COLUMN "opencnam_sid" VARCHAR(255)')
+            database.execute_sql('ALTER TABLE user ADD COLUMN "opencnam_auth_token" VARCHAR(255)')
+        except:
+            pass
+
 
 class Notification(BaseModel):
     """Notification settings."""
@@ -163,6 +175,11 @@ class NotificationQueue(BaseModel):
             (('handled',), False),
             )
 
+class CnamLookupQueue(BaseModel):
+    """A queue of pending CNAM lookups"""
+    peer = ForeignKeyField(Peer,unique=True)
+    handled = BooleanField(default=False,index=True)
+
 class Attachment(BaseModel):
     sid = CharField(unique=True)
     duration = IntegerField(null=True)
@@ -184,7 +201,8 @@ def create_tables():
         Conversation,
         Event,
         NotificationQueue,
-        Attachment
+        Attachment,
+        CnamLookupQueue,
         ]:
         table.create_table(fail_silently=True)
         table.update_schema()

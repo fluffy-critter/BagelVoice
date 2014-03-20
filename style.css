@@ -6,6 +6,24 @@ h1, h2, h3 {
     font-family: "Gill Sans", "Helvetica", "Sans Serif"
 }
 
+div#user {
+    float: right;
+    border: solid black 1px;
+    margin: 1ex;
+    padding: 1ex;
+    background: #eef;
+}
+
+div#user ul {
+    list-style-type: none;
+    margin: 0 0 0 0;
+    indent: 0 0 0 0;
+}
+div#user ul li {
+    margin: 0 0 0 0;
+    indent: 0 0 0 0;
+}
+
 div#status { 
     position: absolute;
     top: 0px;
