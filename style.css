@@ -111,7 +111,11 @@ input.sms {
     font-size: small;
     background: #eee;
     border: #070 1px;
+    color: black;
+    padding: 2px;
 }
+
+.when .date { font-weight: bold; }
 
 .thread .outbound .when {
     float: left;

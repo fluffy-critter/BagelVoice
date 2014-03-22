@@ -50,12 +50,12 @@ def renderEvent(event,prev=None):
             event.status
             )
 
-    dateFormat='%x %H:%M'
+    dateFormat='<div class="date">%x</div><div class="time">%H:%M</div>'
     thisTime=timeutil.convert(event.time,tz)
     if prev:
         prevTime=timeutil.convert(prev.time,tz)
         if prevTime.date() == thisTime.date():
-            dateFormat='%H:%M'
+            dateFormat='<div class="time">%H:%M</div>'
     print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime(dateFormat)
 
     if event.call_duration:
