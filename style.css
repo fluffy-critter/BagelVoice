@@ -107,11 +107,20 @@ input.sms {
 }
 
 .thread .when {
-    background: #cfc;
+    font-size: small;
+    background: #eee;
     border: #070 1px;
+}
+
+.thread .outbound .when {
     float: left;
-    margin: 0px 1ex 1ex 0px;
+    margin-right: 1ex;
     border-style: none solid solid none;
+}
+.thread .inbound .when {
+    float: right;
+    margin-left: 1ex;
+    border-style: none none solid solid;
 }
 
 .thread .event {
@@ -145,12 +154,18 @@ input.sms {
     text-shadow: 0px 0px 3px #f00;
 }
 
+.thread .inbound { color: #006; }
+
 .thread .inbound .text {
     text-align: left;
+    padding-right: 3em;
 }
+
+.thread .outbound { color: #500; }
 
 .thread .outbound .text {
     text-align: right;
+    padding-left: 3em;
 }
 
 .attachbody {

@@ -8,6 +8,7 @@ import sys
 import os
 import urllib
 import config
+import re
 
 user = session.user()
 tz = timeutil.get_tz(user)
@@ -31,6 +32,12 @@ def sanitize(str):
     ''' Incredibly basic HTML sanitizer. Why doesn't Python come with this? '''
     return str.replace('<', '&lt;').replace('>', '&gt;')
 
+def autolink(str):
+    ''' Incredibly basic HTML autolinker '''
+    return re.sub(r'(http://[^ ]*)',
+                  r'<a href="\1">\1</a>',
+                  str)
+
 def renderEvent(event):
     out = StringIO()
     print >>out, '<div class="event %s" id="event-%d">' % (
@@ -48,7 +55,7 @@ def renderEvent(event):
     if event.call_duration:
         print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
     if event.message_body:
-        print >>out, '<div class="text">%s</div>' % sanitize(event.message_body)
+        print >>out, '<div class="text">%s</div>' % autolink(sanitize(event.message_body))
 
     for attach in event.media:
         print >>out, '<div class="media">'

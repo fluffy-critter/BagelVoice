@@ -110,6 +110,9 @@ def getEvent(form, sidField, inbound, type):
         conversation.last_update = now
         conversation.unread = True
         conversation.save()
+
+        peer.last_event = now
+        peer.save()
    
     # there are several fields that could rightfully become 'status' and we want to guarantee precedence 
     save = False

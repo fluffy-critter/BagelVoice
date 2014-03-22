@@ -41,6 +41,8 @@ def makeCallEvent(conversation, call, inbound):
     event.save()
     conversation.last_update = max(conversation.last_update, event.last_update)
     conversation.save()
+    conversation.peer.last_event = max(conversation.last_update, event.last_update)
+    conversation.peer.save()
     return event
 
 def makeMessageEvent(conversation, message, inbound):
@@ -59,6 +61,8 @@ def makeMessageEvent(conversation, message, inbound):
     event.save()
     conversation.last_update = max(conversation.last_update, event.last_update)
     conversation.save()
+    conversation.peer.last_event = max(conversation.last_update, event.last_update)
+    conversation.peer.save()
     return event
 
 def makeVoicemail(call, vm):
