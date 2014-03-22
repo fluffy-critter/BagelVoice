@@ -38,7 +38,7 @@ def autolink(str):
                   r'<a href="\1">\1</a>',
                   str)
 
-def renderEvent(event):
+def renderEvent(event,prev=None):
     out = StringIO()
     print >>out, '<div class="event %s" id="event-%d">' % (
         event.inbound and 'inbound' or 'outbound',
@@ -50,7 +50,13 @@ def renderEvent(event):
             event.status
             )
 
-    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime('%x %H:%M')
+    dateFormat='%x %H:%M'
+    thisTime=timeutil.convert(event.time,tz)
+    if prev:
+        prevTime=timeutil.convert(prev.time,tz)
+        if prevTime.date() == thisTime.date():
+            dateFormat='%H:%M'
+    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime(dateFormat)
 
     if event.call_duration:
         print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
@@ -120,8 +126,10 @@ def renderThread(thread, limit=None):
 </div>''' % (inbox.phone_number, peer.phone_number, urllib.quote(os.getenv('REQUEST_URI')))
 
     print >>out, '<div class="events">'
+    prev=None
     for event in thread.events.limit(limit):
-        print >>out, renderEvent(event)
+        print >>out, renderEvent(event,prev)
+        prev=event
     if limit and thread.events.count() > limit:
         print >>out, '<a class="more" href="?t=%d">&hellip;</a>' % thread.id
     print >>out, '</div>'
