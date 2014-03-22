@@ -42,9 +42,9 @@ else:
     for thread in threads:
         if count == 0: limit=10
         elif count < 5: limit=5
-        elif count < 10: limit = 3
+        elif count < 10: limit=3
         else: limit = 1
-        ++count
+        count += 1
         print render.renderThread(thread, limit)
 print '</div>'
 
