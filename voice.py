@@ -63,6 +63,10 @@ if event.conversation.peer.blocked:
     event.save()
     reject()
 
+# send voicemail callers directly to voicemail
+if event.conversation.peer.send_to_voicemail and state == 'enter-call':
+    state = 'post-call'
+
 inbox = event.inbox
 user = inbox.user
 notifyQuery = None
