@@ -67,6 +67,22 @@ class Inbox(BaseModel):
     voicemail_greeting = CharField(null=True)
     transcribe_voicemail = BooleanField(default=False)
     max_ring_time = IntegerField(null=True)
+    priority = IntegerField()
+
+    class Meta:
+        indexes = (
+            (('user_id', 'priority'), False),
+            )
+
+    @staticmethod
+    def update_schema():
+        """ add priority field """
+        try:
+            database.execute_sql('ALTER TABLE inbox ADD COLUMN "priority" INTEGER')
+            database.execute_sql('CREATE INDEX "inbox_user_id_priority" ON "inbox" ("user_id", "priority")')
+        except:
+            pass
+        
 
 class CallRoute(BaseModel):
     """Routes for a call to take"""

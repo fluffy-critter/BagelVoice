@@ -146,6 +146,7 @@ def renderUserBox():
 <ul class="actions">
 <li><a href="{r}/session.py/logout">log out</a></li>
 <li><a href="{r}/peer.py">address book</a></li>
+<li><a href="{r}/sendmsg.py">Send a text message</a></li>
 </ul>
 </div>
 '''.format(u=user.username,r=config.configuration['root-url'])
