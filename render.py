@@ -33,8 +33,8 @@ def sanitize(str):
     return str.replace('<', '&lt;').replace('>', '&gt;')
 
 def autolink(str):
-    ''' Incredibly basic HTML autolinker '''
-    return re.sub(r'(http://[^ ]*)',
+    ''' Incredibly basic URL autolinker '''
+    return re.sub(r'([a-z]+://[^ ]*)',
                   r'<a href="\1">\1</a>',
                   str)
 
