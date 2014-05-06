@@ -34,13 +34,13 @@ Subject: {msgtype} from {fromName}\r
 To view or reply, visit: {view}?t={tid}\r
 """
 
-    if msg.has_key('text') == msg.has_key('voice'):
+    if msg['text'] and msg['voice']:
         msgtype='Messages'
-    elif msg.has_key('text'):
+    elif msg['text']:
         msgtype='Text message'
         if msg['text'] > 1:
             msgtype += 's'
-    elif msg.has_key('voice'):
+    elif msg['voice']:
         msgtype='Call'
         if msg['voice'] > 1:
             msgtype += 's'
@@ -78,14 +78,16 @@ def addEmail(uri, event):
                'toAddr': toAddr,
                'fromName': fromName,
                'tid': event.conversation.id,
-               'body': ''
+               'body': '',
+               'text': 0,
+               'voice': 0
         }
 
     if event.type == 'text':
-        msg['text'] = True
+        msg['text'] += 1
         mediaType = 'Attachment'
     else:
-        msg['voice'] = True
+        msg['voice'] += 1
         mediaType = 'Voicemail'
 
     body = event.time.strftime("At %x %H:%M:\r\n")
