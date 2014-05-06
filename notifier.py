@@ -11,6 +11,7 @@ from model import NotificationQueue, CnamLookupQueue
 import os
 import datetime
 import time
+import timeutil
 import logging
 import smtplib
 import opencnam
@@ -18,7 +19,47 @@ import opencnam
 # TODO make the background notifier not write to one old logfile in perpetuity
 logger = logging.getLogger(__name__)
 
-def sendEmail(uri, event):
+threads = {}
+
+def sendEmail(msg):
+    logger.info("Sending email from %s to %s", msg['fromName'], msg['toAddr'])
+
+    text = """\
+From: {fromAddr}\r
+To: {toAddr}\r
+Subject: {msgtype} from {fromName}\r
+\r
+{body}\r
+\r
+To view or reply, visit: {view}?t={tid}\r
+"""
+
+    if msg.has_key('text') == msg.has_key('voice'):
+        msgtype='Messages'
+    elif msg.has_key('text'):
+        msgtype='Text message'
+        if msg['text'] > 1:
+            msgtype += 's'
+    elif msg.has_key('voice'):
+        msgtype='Call'
+        if msg['voice'] > 1:
+            msgtype += 's'
+
+    # TODO configurable connection (auth, tls, et al)
+    smtp = smtplib.SMTP()
+    smtp.connect()
+    smtp.sendmail(msg['fromAddr'],
+                  msg['toAddr'],
+                  text.format(fromAddr=msg['fromAddr'],
+                              toAddr=msg['toAddr'],
+                              fromName=msg['fromName'],
+                              msgtype=msgtype,
+                              body=msg['body'],
+                              view=configuration['root-url'],
+                              tid=msg['tid']))
+    smtp.quit()
+
+def addEmail(uri, event):
     conf = configuration['notify']['mailto']
     fromAddr = conf['from']
     toAddr = uri.split(':')[1]
@@ -27,42 +68,44 @@ def sendEmail(uri, event):
         fromName = '%s (%s)' % (peer.display_name, peer.phone_number)
     else:
         fromName = peer.phone_number
-    
-    msg = "From: {fromAddr}\r\nTo: {toAddr}\r\n"
+
+    if threads.has_key(event.conversation.id):
+        logger.info("Appending to tid=%s", event.conversation.id)
+        msg = threads[event.conversation.id]
+    else:
+        logger.info("New thread for tid=%s", event.conversation.id)
+        msg = {'fromAddr': fromAddr,
+               'toAddr': toAddr,
+               'fromName': fromName,
+               'tid': event.conversation.id,
+               'body': ''
+        }
+
     if event.type == 'text':
-        msg += "Subject: Text message from {fromName}\r\n"
+        msg['text'] = True
         mediaType = 'Attachment'
     else:
-        msg += "Subject: Call from {fromName}\r\n"
+        msg['voice'] = True
         mediaType = 'Voicemail'
-    msg += "\r\n"
 
+    body = event.time.strftime("At %x %H:%M:\r\n")
     if event.message_body:
-        msg += "Message: {body}\r\n"
+        body += "%s\r\n" % event.message_body
 
     for attach in event.media:
-        msg += "{mediaType} (%s%s): %s\r\n" % (attach.mime_type,
+        body += "{mediaType} (%s%s): %s\r\n" % (attach.mime_type,
                                               (attach.duration and
                                                ', %d:%02d' % (attach.duration/60,
                                                               attach.duration%60)
                                                ) or '',
                                               attach.url)
         if attach.transcription:
-            msg += "Transcript:\r\n\r\n%s\r\n\r\n" % attach.transcription
+            body += "Transcript:\r\n\r\n%s\r\n\r\n" % attach.transcription
 
-    msg += "\r\nTo view or reply, visit: {view}?t={tid}\r\n"
-    logger.info("Sending email from %s to %s", fromAddr, toAddr)
-    # TODO configurable connection (auth, tls, et al)
-    smtp = smtplib.SMTP()
-    smtp.connect()
-    smtp.sendmail(fromAddr, toAddr, msg.format(fromAddr=fromAddr,
-                                               toAddr=toAddr,
-                                               fromName=fromName,
-                                               body=event.message_body,
-                                               mediaType=mediaType,
-                                               view=configuration['root-url'],
-                                               tid=event.conversation.id))
-    smtp.quit()
+    body += "\r\n"
+    msg['body'] += body
+
+    threads[event.conversation.id] = msg    
 
 def handleEvents():
     """Handle all of the events in the past.
@@ -70,7 +113,7 @@ def handleEvents():
     Returns the number of milliseconds until the next time to check the queue.
     """
     nextTime = None
-    for item in NotificationQueue.select().where(NotificationQueue.handled == False):
+    for item in NotificationQueue.select().where(NotificationQueue.handled == False).order_by(NotificationQueue.time):
         now = datetime.datetime.now()
         if item.time > now:
             interval = item.time - now
@@ -84,7 +127,7 @@ def handleEvents():
         try:
             schema = uri.split(':')[0]
             if schema == 'mailto':
-                sendEmail(uri, event)
+                addEmail(uri, event)
             else:
                 logger.warning("Unknown protocol %s for URI %s", schema, uri)
 
@@ -105,6 +148,12 @@ def handleEvents():
     if num:
         logger.info("Completed %d notifications", num)
 
+    if len(threads):
+        logger.info("Have %d threads to notify about", len(threads))
+    for tt in threads:
+        logger.info("thread: %d", tt)
+        sendEmail(threads[tt])
+
     for item in CnamLookupQueue.select().where(CnamLookupQueue.handled == False):
         peer = item.peer
         if not peer.display_name:
@@ -119,6 +168,7 @@ def handleEvents():
             except opencnam.errors.InvalidPhoneNumberError:
                 logger.warn("Invalid phone number %s", peer.phone_number)
         item.handled = True
+        item.save()
 
     num = CnamLookupQueue.delete().where(CnamLookupQueue.handled == True).execute()
     if num:

@@ -8,6 +8,7 @@ import sys
 import os
 import urllib
 import config
+import re
 
 user = session.user()
 tz = timeutil.get_tz(user)
@@ -31,7 +32,13 @@ def sanitize(str):
     ''' Incredibly basic HTML sanitizer. Why doesn't Python come with this? '''
     return str.replace('<', '&lt;').replace('>', '&gt;')
 
-def renderEvent(event):
+def autolink(str):
+    ''' Incredibly basic URL autolinker '''
+    return re.sub(r'([a-z]+://[^ ]*)',
+                  r'<a href="\1">\1</a>',
+                  str)
+
+def renderEvent(event,prev=None):
     out = StringIO()
     print >>out, '<div class="event %s" id="event-%d">' % (
         event.inbound and 'inbound' or 'outbound',
@@ -43,12 +50,18 @@ def renderEvent(event):
             event.status
             )
 
-    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime('%x %H:%M')
+    dateFormat='<div class="date">%x</div><div class="time">%H:%M</div>'
+    thisTime=timeutil.convert(event.time,tz)
+    if prev:
+        prevTime=timeutil.convert(prev.time,tz)
+        if prevTime.date() == thisTime.date():
+            dateFormat='<div class="time">%H:%M</div>'
+    print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime(dateFormat)
 
     if event.call_duration:
         print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
     if event.message_body:
-        print >>out, '<div class="text">%s</div>' % sanitize(event.message_body)
+        print >>out, '<div class="text">%s</div>' % autolink(sanitize(event.message_body))
 
     for attach in event.media:
         print >>out, '<div class="media">'
@@ -113,8 +126,10 @@ def renderThread(thread, limit=None):
 </div>''' % (inbox.phone_number, peer.phone_number, urllib.quote(os.getenv('REQUEST_URI')))
 
     print >>out, '<div class="events">'
+    prev=None
     for event in thread.events.limit(limit):
-        print >>out, renderEvent(event)
+        print >>out, renderEvent(event,prev)
+        prev=event
     if limit and thread.events.count() > limit:
         print >>out, '<a class="more" href="?t=%d">&hellip;</a>' % thread.id
     print >>out, '</div>'
@@ -131,6 +146,7 @@ def renderUserBox():
 <ul class="actions">
 <li><a href="{r}/session.py/logout">log out</a></li>
 <li><a href="{r}/peer.py">address book</a></li>
+<li><a href="{r}/sendmsg.py">Send a text message</a></li>
 </ul>
 </div>
 '''.format(u=user.username,r=config.configuration['root-url'])

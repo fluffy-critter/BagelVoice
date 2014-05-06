@@ -67,6 +67,22 @@ class Inbox(BaseModel):
     voicemail_greeting = CharField(null=True)
     transcribe_voicemail = BooleanField(default=False)
     max_ring_time = IntegerField(null=True)
+    priority = IntegerField()
+
+    class Meta:
+        indexes = (
+            (('user_id', 'priority'), False),
+            )
+
+    @staticmethod
+    def update_schema():
+        """ add priority field """
+        try:
+            database.execute_sql('ALTER TABLE inbox ADD COLUMN "priority" INTEGER')
+            database.execute_sql('CREATE INDEX "inbox_user_id_priority" ON "inbox" ("user_id", "priority")')
+        except:
+            pass
+        
 
 class CallRoute(BaseModel):
     """Routes for a call to take"""
@@ -105,12 +121,23 @@ class Peer(BaseModel):
     from_state = CharField(null=True)
     from_zip = CharField(null=True)
     from_country = CharField(null=True)
+    last_event = DateTimeField(null=True)
 
     class Meta:
         indexes = (
             # ensure that any given phone number only appears once
             (('user', 'phone_number'), True),
+            (('-last_event',), False),
             )
+
+    @staticmethod
+    def update_schema():
+        """ add the last_event field and index"""
+        try:
+            database.execute_sql('ALTER TABLE peer ADD COLUMN "last_event" DATETIME')
+            database.execute_sql('CREATE INDEX "peer_last_event" on "peer" ("last_event")')
+        except:
+            pass
 
 class Conversation(BaseModel):
     """A conversation thread."""

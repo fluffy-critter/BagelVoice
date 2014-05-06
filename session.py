@@ -88,6 +88,10 @@ Content-type: text/html
 Location: %s
 
 Redirecting...''' % request_url()
+
+            # this is a good time to clean up old sessions
+            WebSession.delete().where(WebSession.last_seen < timeutil.getTime() - timedelta(weeks=2)).execute()
+
             sys.exit()
         else:
             # Login failed; set an error string to that effect
