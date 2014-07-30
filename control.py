@@ -12,7 +12,7 @@ def applyAttribs(obj, form, keyMapping):
     for k, v in keyMapping.items():
         if form.getfirst(k):
             needsSave = True
-            setattr(obj, v, form.getfirst(k))
+            setattr(obj, v.decode('utf-8'), form.getfirst(k))
     return needsSave
 
 def getUser(form):
@@ -120,7 +120,7 @@ def getEvent(form, sidField, inbound, type):
         if applyAttribs(event, form, { field : 'status' }):
             save = True    
     if applyAttribs(event, form, {
-        'DialCallDuration': 'duration',
+        'DialCallDuration': 'call_duration',
         'Body': 'message_body',
         }):
         save = True

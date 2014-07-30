@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import session
+import codecs
 from model import *
 from cStringIO import StringIO
 import timeutil
@@ -9,6 +10,9 @@ import os
 import urllib
 import config
 import re
+import logging
+
+logger=logging.getLogger(__name__) 
 
 user = session.user()
 tz = timeutil.get_tz(user)
@@ -30,7 +34,11 @@ def pageHead(title=None):
 
 def sanitize(str):
     ''' Incredibly basic HTML sanitizer. Why doesn't Python come with this? '''
-    return str.replace('<', '&lt;').replace('>', '&gt;')
+    try:
+        return str.encode('utf-8','replace').replace('<', '&lt;').replace('>', '&gt;')
+    except Exception, e:
+        logger.error("Error sanitizing string: %s" % e)
+        return "[encoding error: %s]" % e
 
 def autolink(str):
     ''' Incredibly basic URL autolinker '''
@@ -58,10 +66,14 @@ def renderEvent(event,prev=None):
             dateFormat='<div class="time">%H:%M</div>'
     print >>out, '<div class="when">%s</div>' % timeutil.convert(event.time,tz).strftime(dateFormat)
 
-    if event.call_duration:
-        print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
+    if event.type == 'voice':
+        if event.call_duration:
+            print >>out, '<div class="call">Call, %d seconds</div>' % event.call_duration
+        else:
+            print >>out, '<div class="call">Call, unknown duration</div>'
     if event.message_body:
-        print >>out, '<div class="text">%s</div>' % autolink(sanitize(event.message_body))
+        text=autolink(sanitize(event.message_body))
+        print >>out, '<div class="text">%s</div>' % text
 
     for attach in event.media:
         print >>out, '<div class="media">'
