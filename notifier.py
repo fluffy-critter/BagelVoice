@@ -95,12 +95,13 @@ def addEmail(uri, event):
         body += "%s\r\n" % event.message_body
 
     for attach in event.media:
-        body += "{mediaType} (%s%s): %s\r\n" % (attach.mime_type,
-                                              (attach.duration and
-                                               ', %d:%02d' % (attach.duration/60,
-                                                              attach.duration%60)
-                                               ) or '',
-                                              attach.url)
+        body += "%s (%s%s): %s\r\n" % (mediaType,
+                                       attach.mime_type,
+                                       (attach.duration and
+                                        ', %d:%02d' % (attach.duration/60,
+                                                       attach.duration%60)
+                                    ) or '',
+                                       attach.url)
         if attach.transcription:
             body += "Transcript:\r\n\r\n%s\r\n\r\n" % attach.transcription
 

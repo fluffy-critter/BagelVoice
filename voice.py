@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from model import *
+import config
 import control
 import cgi
 import os
@@ -130,7 +131,7 @@ if not responseBody and state == 'post-call':
         transcribeTag = ''
         if inbox.transcribe_voicemail:
             transcribeTag = ' transcribe="true" transcribeCallback="transcribed"'
-        responseBody += '<Record action="post-vm" maxLength="240"%s />' % transcribeTag
+        responseBody += '<Record action="%s/voice.py/post-vm" maxLength="240"%s />' % (config.configuration['root-url'],transcribeTag)
 
 if not responseBody and state == 'post-vm':
     notifyQuery = user.notifications.where(Notification.notify_voicemail == True)
